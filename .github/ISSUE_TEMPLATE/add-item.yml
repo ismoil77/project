@@ -124,6 +124,12 @@ body:
     attributes:
       label: "Длина стельки, см (для обуви)"
       placeholder: "26,5"
+  - type: dropdown
+    id: sheer
+    attributes:
+      label: "Просвечивает"
+      description: "Подними вещь к лампе или окну."
+      options: ["Нет", "Немного, на свету", "Сильно — видно силуэт"]
   - type: checkboxes
     id: protection
     attributes:
@@ -148,5 +154,5 @@ body:
     id: removebg
     attributes:
       label: "Удалить фон"
-      options: ["На всех фото", "Только на первом (обложка)", "Не удалять"]
+      options: ["Не удалять", "На всех фото", "Только на первом (обложка)"]
       default: 0

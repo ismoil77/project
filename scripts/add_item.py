@@ -119,14 +119,36 @@ def rembg_session():
     global _session
     if _session is None:
         from rembg import new_session
-        _session = new_session("isnet-general-use")
+        # BiRefNet copes much better than U2-Net/ISNet with white clothes on light, patterned backgrounds
+        _session = new_session("birefnet-general-lite")
     return _session
+
+
+def main_object(alpha):
+    """Keep only the garment: break thin bridges, take the largest blob, fill its holes.
+    Removes feet, hands at the edge, specks of background."""
+    import numpy as np
+    from scipy import ndimage
+    from PIL import Image
+    a = np.asarray(alpha) > 128
+    opened = ndimage.binary_opening(a, iterations=6)
+    labels, n = ndimage.label(opened)
+    if n == 0:
+        return alpha
+    sizes = ndimage.sum(opened, labels, range(1, n + 1))
+    keep = labels == (int(np.argmax(sizes)) + 1)
+    keep = ndimage.binary_dilation(keep, iterations=8) & a
+    keep = ndimage.binary_fill_holes(keep)
+    soft = np.asarray(alpha).astype(float) * keep
+    soft[keep & ~a] = 255  # filled holes become opaque
+    return Image.fromarray(soft.clip(0, 255).astype("uint8"))
 
 
 def cutout(img):
     from PIL import Image
     from rembg import remove
-    out = remove(img, session=rembg_session(), post_process_mask=True)
+    out = remove(img, session=rembg_session())
+    out.putalpha(main_object(out.getchannel("A")))
     bbox = out.getchannel("A").point(lambda a: 255 if a > 20 else 0).getbbox()
     if bbox:
         out = out.crop(bbox)
@@ -143,9 +165,16 @@ def load(src):
     return img
 
 
-def save(img, path: Path):
+def save(img, path: Path) -> Path:
+    """Cut-outs (with transparency) as WebP, ordinary photos as JPEG. Returns the real path."""
     img.thumbnail((MAX_SIDE, MAX_SIDE))
-    img.save(path, "WEBP", quality=82, method=6)
+    if img.mode == "RGBA":
+        path = path.with_suffix(".webp")
+        img.save(path, "WEBP", quality=82, method=6)
+    else:
+        path = path.with_suffix(".jpg")
+        img.convert("RGB").save(path, "JPEG", quality=84, optimize=True)
+    return path
 
 
 
@@ -187,6 +216,9 @@ def apply_fields(item: dict, f: dict, is_new: bool) -> list[str]:
     formality = get(f, "Стиль")
     if formality[:1].isdigit():
         put("formality", int(formality[0]), "стиль")
+    sheer = get(f, "Просвечивает")
+    if sheer and not sheer.startswith("Нет"):
+        put("sheer", sheer.lower(), "просвечивание")
     put("insole_cm", get(f, "Длина стельки").replace(",", "."), "длина стельки")
 
     season = get(f, "Сезон и плотность")
@@ -269,7 +301,7 @@ def add(data, f, token) -> str:
         item, is_new = new_item(items, f), True
     changed = apply_fields(item, f, is_new)
 
-    mode = get(f, "Удалить фон") or "На всех фото"
+    mode = get(f, "Удалить фон") or "Не удалять"
     PHOTOS.mkdir(parents=True, exist_ok=True)
     start = len(item["photos"])
     for n, url in enumerate(urls):
@@ -279,9 +311,8 @@ def add(data, f, token) -> str:
         img = load(BytesIO(r.content))
         remove = mode == "На всех фото" or (mode.startswith("Только") and start + n == 0)
         out = cutout(img) if remove else img
-        name = f"{item['id']}-{start + n + 1}.webp"
-        save(out, PHOTOS / name)
-        item["photos"].append(f"wardrobe/photos/{name}")
+        saved = save(out, PHOTOS / f"{item['id']}-{start + n + 1}")
+        item["photos"].append(f"wardrobe/photos/{saved.name}")
         if start + n == 0:
             auto = colors.analyze(out)
             user = item.get("color") or {}

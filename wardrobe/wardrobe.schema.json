@@ -4,72 +4,336 @@
   "title": "Wardrobe",
   "description": "Каталог одежды и обуви владельца. Правила подбора образа — AI_GUIDE.md.",
   "type": "object",
-  "required": ["schema_version", "items"],
+  "required": [
+    "schema_version",
+    "items"
+  ],
   "properties": {
-    "schema_version": {"type": "integer"},
-    "lifespan_years": {"type": "object", "description": "Обычный срок службы по type или category, лет", "additionalProperties": {"type": "number"}},
-    "owner": {"type": "object"},
-    "items": {"type": "array", "items": {"$ref": "#/$defs/item"}},
-    "wishlist": {"type": "array", "items": {"type": "object"}}
+    "schema_version": {
+      "type": "integer"
+    },
+    "lifespan_years": {
+      "type": "object",
+      "description": "Обычный срок службы по type или category, лет",
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "owner": {
+      "type": "object"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/item"
+      }
+    },
+    "wishlist": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
   },
   "$defs": {
     "color": {
       "type": "object",
       "properties": {
-        "name": {"type": "string", "description": "Основной цвет по-русски"},
-        "hex": {"type": "string", "pattern": "^#[0-9a-fA-F]{6}$"},
-        "family": {"enum": ["нейтральный", "землистый", "тёплый", "холодный"]},
-        "tone": {"enum": ["светлый", "средний", "тёмный"]},
-        "secondary": {"type": "array", "items": {"type": "object", "properties": {"name": {"type": "string"}, "hex": {"type": "string"}, "share": {"type": "number"}}}},
-        "auto": {"type": "boolean", "description": "true — определён по фото, false — указан владельцем"}
+        "name": {
+          "type": "string",
+          "description": "Основной цвет по-русски"
+        },
+        "hex": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "family": {
+          "enum": [
+            "нейтральный",
+            "землистый",
+            "тёплый",
+            "холодный"
+          ]
+        },
+        "tone": {
+          "enum": [
+            "светлый",
+            "средний",
+            "тёмный"
+          ]
+        },
+        "secondary": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "hex": {
+                "type": "string"
+              },
+              "share": {
+                "type": "number"
+              },
+              "family": {
+                "enum": [
+                  "нейтральный",
+                  "землистый",
+                  "тёплый",
+                  "холодный"
+                ]
+              }
+            }
+          }
+        },
+        "auto": {
+          "type": "boolean",
+          "description": "true — определён по фото, false — указан владельцем"
+        }
       }
     },
     "date_approx": {
-      "type": ["object", "null"],
+      "type": [
+        "object",
+        "null"
+      ],
       "properties": {
-        "date": {"type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}$"},
-        "approx": {"type": "boolean"},
-        "text": {"type": "string", "description": "Как сказал владелец: «осень 2024», «2 года назад»"}
+        "date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^\\d{4}-\\d{2}$"
+        },
+        "approx": {
+          "type": "boolean"
+        },
+        "text": {
+          "type": "string",
+          "description": "Как сказал владелец: «осень 2024», «2 года назад»"
+        }
       }
     },
     "item": {
       "type": "object",
-      "required": ["id", "status", "name", "category", "warmth", "temp", "photos"],
+      "required": [
+        "id",
+        "status",
+        "name",
+        "category",
+        "warmth",
+        "temp",
+        "photos"
+      ],
       "properties": {
-        "id": {"type": "string", "pattern": "^[a-z]+-\\d{3}$"},
-        "status": {"enum": ["active", "archived"]},
-        "archived": {"type": "object", "properties": {"date": {"type": "string"}, "reason": {"type": "string"}, "comment": {"type": "string"}}},
-        "name": {"type": "string"},
-        "brand": {"type": "string"},
-        "article": {"type": "string"},
-        "category": {"enum": ["Верх", "Низ", "Верхняя одежда", "Обувь", "Аксессуары"]},
-        "type": {"type": "string", "description": "футболка, свитер, джинсы, кроссовки, туфли…"},
-        "color": {"$ref": "#/$defs/color"},
-        "pattern": {"type": "string", "description": "однотонный, полоска, клетка, принт / надпись, камуфляж, другой"},
-        "material": {"type": "string"},
-        "size": {"type": "string"},
-        "insole_cm": {"type": "string", "description": "Длина стельки (обувь)"},
-        "warmth": {"type": "integer", "minimum": 1, "maximum": 5},
-        "season": {"type": "array", "items": {"enum": ["лето", "межсезонье", "зима"]}},
-        "thickness": {"enum": ["тонкая", "средняя", "плотная"]},
-        "temp": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2, "description": "Комфортная ощущаемая температура [от, до], °C"},
-        "layer": {"enum": ["база", "средний", "средний / верхний", "верхний", "обувь", "аксессуар"]},
-        "formality": {"type": "integer", "minimum": 1, "maximum": 5, "description": "1 спорт · 2 повседневный · 3 смарт-кэжуал · 4 деловой · 5 строгий"},
-        "windproof": {"type": ["boolean", "string"]},
-        "waterproof": {"type": ["boolean", "string"]},
-        "occasions": {"type": "array", "items": {"enum": ["Работа", "Повседневно", "Спорт", "Дом", "Праздник / выход"]}, "description": "Пусто — везде"},
-        "condition": {"enum": ["отличное", "хорошее", "есть дефекты", "только дом/спорт"]},
-        "flaws": {"type": "array", "items": {"type": "string"}},
-        "flaw_notes": {"type": "string"},
-        "added": {"type": "string", "format": "date"},
-        "purchased": {"$ref": "#/$defs/date_approx"},
-        "price": {"type": "string"},
-        "link": {"type": "string"},
-        "care": {"type": "string"},
-        "notes": {"type": "string"},
-        "pairs_with": {"type": "array", "items": {"type": "string"}},
-        "photos": {"type": "array", "items": {"type": "string"}},
-        "history": {"type": "array", "items": {"type": "object", "properties": {"date": {"type": "string"}, "event": {"type": "string"}, "note": {"type": "string"}}}}
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z]+-\\d{3}$"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "archived"
+          ]
+        },
+        "archived": {
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "string"
+            },
+            "comment": {
+              "type": "string"
+            }
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "brand": {
+          "type": "string"
+        },
+        "article": {
+          "type": "string"
+        },
+        "category": {
+          "enum": [
+            "Верх",
+            "Низ",
+            "Верхняя одежда",
+            "Обувь",
+            "Аксессуары"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "description": "футболка, свитер, джинсы, кроссовки, туфли…"
+        },
+        "color": {
+          "$ref": "#/$defs/color"
+        },
+        "pattern": {
+          "type": "string",
+          "description": "однотонный, полоска, клетка, принт / надпись, камуфляж, другой"
+        },
+        "material": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string"
+        },
+        "insole_cm": {
+          "type": "string",
+          "description": "Длина стельки (обувь)"
+        },
+        "warmth": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "season": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "лето",
+              "межсезонье",
+              "зима"
+            ]
+          }
+        },
+        "thickness": {
+          "enum": [
+            "тонкая",
+            "средняя",
+            "плотная"
+          ]
+        },
+        "temp": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "Комфортная ощущаемая температура [от, до], °C"
+        },
+        "layer": {
+          "enum": [
+            "база",
+            "средний",
+            "средний / верхний",
+            "верхний",
+            "обувь",
+            "аксессуар"
+          ]
+        },
+        "formality": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "1 спорт · 2 повседневный · 3 смарт-кэжуал · 4 деловой · 5 строгий"
+        },
+        "windproof": {
+          "type": [
+            "boolean",
+            "string"
+          ]
+        },
+        "waterproof": {
+          "type": [
+            "boolean",
+            "string"
+          ]
+        },
+        "occasions": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "Работа",
+              "Повседневно",
+              "Спорт",
+              "Дом",
+              "Праздник / выход"
+            ]
+          },
+          "description": "Пусто — везде"
+        },
+        "condition": {
+          "enum": [
+            "отличное",
+            "хорошее",
+            "есть дефекты",
+            "только дом/спорт"
+          ]
+        },
+        "flaws": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flaw_notes": {
+          "type": "string"
+        },
+        "added": {
+          "type": "string",
+          "format": "date"
+        },
+        "purchased": {
+          "$ref": "#/$defs/date_approx"
+        },
+        "price": {
+          "type": "string"
+        },
+        "link": {
+          "type": "string"
+        },
+        "care": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "pairs_with": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "photos": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "history": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string"
+              },
+              "event": {
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "sheer": {
+          "type": [
+            "string",
+            "boolean"
+          ],
+          "description": "Просвечивает ли ткань: нет / немного на свету / сильно"
+        }
       }
     }
   }

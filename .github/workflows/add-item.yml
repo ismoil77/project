@@ -31,8 +31,10 @@ jobs:
       - name: Cache background-removal model
         uses: actions/cache@v4
         with:
-          path: ~/.u2net
-          key: u2net-isnet-general-use-v1
+          path: |
+            ~/.u2net
+            ~/.rembg
+          key: rembg-birefnet-general-lite-v1
 
       - run: pip install -r scripts/requirements.txt
 

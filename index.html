@@ -348,7 +348,7 @@ function renderItems(){
       <div class="b">${i.brand ? `<div class="brand">${esc(i.brand)}</div>` : ''}<div class="n">${esc(i.name)}</div>
         <div class="m"><span><span class="sw" style="background:${esc(i.color?.hex||'#999')}"></span>${esc(i.color?.name||'')}</span>${warmth(i.warmth)}</div></div>
     </article>`).join('') +
-    `<a class="addcard" target="_blank" rel="noopener" href="${ISSUE('&title=' + encodeURIComponent('Вещь: '))}"><span>+</span>Добавить вещь<small style="font-weight:600">фон удалится сам</small></a>`;
+    `<a class="addcard" target="_blank" rel="noopener" href="${ISSUE('&title=' + encodeURIComponent('Вещь: '))}"><span>+</span>Добавить вещь<small style="font-weight:600">фото вещи и бирки</small></a>`;
   bindDots($('#grid'));
 }
 $('#chips').onclick = e => { const b = e.target.closest('button'); if (b) { cat = b.dataset.c; renderItems(); } };
@@ -362,7 +362,7 @@ function openItem(id){
   const rows = [['Категория', [i.category, i.type].filter(Boolean).join(' · ')], ['Цвет', [i.color?.name, i.color?.family, i.color?.tone].filter(Boolean).join(' · ') + (i.color?.secondary?.length ? ' + ' + i.color.secondary.map(c => c.name).join(', ') : '')], ['Узор', i.pattern], ['Стиль', i.formality ? i.formality + ' — ' + STYLE[i.formality] : ''], ['Стелька', i.insole_cm ? i.insole_cm + ' см' : ''], ['Состав', i.material], ['Размер', i.size], ['Артикул', i.article],
     ['Сезон', (i.season||[]).join(', ')], ['Плотность', i.thickness],
     ['Носить при', fmtT(i.temp[0]) + ' … ' + fmtT(i.temp[1])], ['Теплота', i.warmth + ' / 5'], ['Слой', i.layer],
-    ['Защита', [i.windproof && 'ветер', i.waterproof === true ? 'дождь' : i.waterproof].filter(Boolean).join(', ')],
+    ['Просвечивает', i.sheer], ['Защита', [i.windproof && 'ветер', i.waterproof === true ? 'дождь' : i.waterproof].filter(Boolean).join(', ')],
     ['Состояние', i.condition], ['Дефекты', (i.flaws||[]).join(', ')], ['Где дефект', i.flaw_notes],
     ['Где носить', (i.occasions||[]).join(', ') || 'везде'],
     ['Куплена', i.purchased ? (i.purchased.approx ? '≈ ' : '') + (i.purchased.text || fmtDate(i.purchased.date)) : 'не указано'],
@@ -474,6 +474,8 @@ function outfit(t, rain){
   if (accents.length > 2) warns.push('Много ярких цветов: ' + accents.join(', ') + '. Замени одну вещь на нейтральную.');
   const target = TARGET_FORMALITY[OCC] ?? 2, off = pick.filter(i => Math.abs((i.formality ?? 2) - target) > 1);
   if (off.length) warns.push(`Для «${OCC}» по стилю не очень: ` + off.map(i => i.name).join(', ') + '.');
+  const sheer = pick.filter(i => i.sheer && i.layer === 'база' && pick.filter(x => x.category === 'Верх').length === 1);
+  if (sheer.length && ['Работа','Праздник / выход'].includes(OCC)) warns.push(`«${sheer[0].name}» просвечивает — надень под неё однотонную майку.`);
   const excluded = active().filter(i => !allowed(i));
   const flawed = pick.filter(hasFlaws);
   return {pick, missing, warns, excluded, flawed};

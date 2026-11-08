@@ -22,7 +22,9 @@
     "сандалии": 2,
     "худи": 3,
     "куртка": 4.5,
-    "пуховик": 5
+    "пуховик": 5,
+    "лонгслив": 2.5,
+    "кардиган": 3.5
   },
   "owner": {
     "name": "Исмоил",
@@ -97,7 +99,7 @@
     {
       "id": "top-001",
       "status": "active",
-      "name": "Футболка белая с принтом",
+      "name": "Футболка белая «B ◇ G»",
       "category": "Верх",
       "type": "футболка",
       "color": {
@@ -105,17 +107,36 @@
         "hex": "#f5f5f2",
         "family": "нейтральный",
         "tone": "светлый",
-        "auto": false,
-        "secondary": []
+        "secondary": [
+          {
+            "name": "графит",
+            "hex": "#3a3d42",
+            "family": "нейтральный",
+            "share": 0.03
+          },
+          {
+            "name": "зелёный",
+            "hex": "#2f6b3f",
+            "family": "холодный",
+            "share": 0.03
+          },
+          {
+            "name": "бежевый",
+            "hex": "#d8c3a5",
+            "family": "землистый",
+            "share": 0.02
+          }
+        ],
+        "auto": false
       },
-      "material": "хлопок (предположительно)",
+      "material": "65% хлопок, 35% полиэстер (по бирке; надпись «100% cotton» на принте — неправда)",
       "warmth": 1,
       "season": [
         "лето"
       ],
       "thickness": "тонкая",
       "temp": [
-        20,
+        22,
         40
       ],
       "layer": "база",
@@ -130,18 +151,26 @@
       "flaws": [],
       "added": "2026-11-08",
       "purchased": null,
-      "notes": "Принт на груди. Под свитер и куртку как базовый слой.",
+      "notes": "Принт ANDEVRYOPTSE с тремя карточками (B, орнамент, G) на груди. Сделано в Китае. Тонкая: на работу лучше с однотонной майкой под ней.",
       "photos": [
-        "wardrobe/photos/top-001.jpg"
+        "wardrobe/photos/top-001-1.jpg",
+        "wardrobe/photos/top-001-2.jpg",
+        "wardrobe/photos/top-001-3.jpg"
       ],
       "history": [
         {
           "date": "2026-11-08",
           "event": "added"
+        },
+        {
+          "date": "2026-11-08",
+          "event": "updated",
+          "note": "новые фото, состав с бирки, просвечивание"
         }
       ],
       "formality": 2,
-      "pattern": "принт / надпись"
+      "pattern": "принт / надпись",
+      "sheer": "просвечивает на свет — видно силуэт"
     },
     {
       "id": "top-002",
@@ -296,7 +325,7 @@
       ],
       "photos": [
         "wardrobe/photos/set-001.jpg",
-        "wardrobe/photos/set-002-2.webp"
+        "wardrobe/photos/set-002-2.jpg"
       ],
       "history": [
         {
@@ -306,6 +335,266 @@
       ],
       "formality": 1,
       "pattern": "однотонный"
+    },
+    {
+      "id": "top-003",
+      "status": "active",
+      "name": "Футболка с принтом «R» и пэчворк-подолом",
+      "category": "Верх",
+      "type": "футболка",
+      "color": {
+        "name": "молочный",
+        "hex": "#efe6d2",
+        "family": "нейтральный",
+        "tone": "светлый",
+        "secondary": [
+          {
+            "name": "зелёный",
+            "hex": "#2f6b3f",
+            "family": "холодный",
+            "share": 0.12
+          },
+          {
+            "name": "тёмно-синий",
+            "hex": "#1f2a44",
+            "family": "нейтральный",
+            "share": 0.1
+          },
+          {
+            "name": "оранжевый",
+            "hex": "#e07b39",
+            "family": "тёплый",
+            "share": 0.04
+          }
+        ],
+        "auto": false
+      },
+      "pattern": "принт / надпись",
+      "material": "вафельный трикотаж, по виду синтетика (бирки с составом нет); подол и манжеты — тонкая гладкая ткань с принтом",
+      "size": "2 (китайская размерная сетка)",
+      "warmth": 1,
+      "season": [
+        "лето"
+      ],
+      "thickness": "тонкая",
+      "temp": [
+        22,
+        40
+      ],
+      "layer": "база",
+      "formality": 2,
+      "windproof": false,
+      "waterproof": false,
+      "sheer": "просвечивает на свет",
+      "occasions": [],
+      "condition": "хорошее",
+      "flaws": [],
+      "flaw_notes": "На фото у ворота справа видна маленькая зацепка или дырочка — нужно проверить",
+      "added": "2026-11-08",
+      "purchased": {
+        "date": "2025-11",
+        "approx": true,
+        "text": "год назад (может, полтора)"
+      },
+      "notes": "Удлинённый подол с пэчворк-вставкой и такие же манжеты. Надпись DIANFANSHEJI-102 спереди и сзади. Ткань тонкая и просвечивает — на работу лучше с однотонной майкой под ней.",
+      "photos": [
+        "wardrobe/photos/top-003-1.webp",
+        "wardrobe/photos/top-003-2.webp",
+        "wardrobe/photos/top-003-3.jpg",
+        "wardrobe/photos/top-003-4.jpg"
+      ],
+      "history": [
+        {
+          "date": "2026-11-08",
+          "event": "added"
+        }
+      ]
+    },
+    {
+      "id": "top-004",
+      "status": "active",
+      "name": "Лонгслив-реглан «The Sun»",
+      "brand": "Reserved",
+      "article": "3655G-01X-170",
+      "category": "Верх",
+      "type": "лонгслив",
+      "color": {
+        "name": "молочный",
+        "hex": "#efe6d2",
+        "family": "нейтральный",
+        "tone": "светлый",
+        "secondary": [
+          {
+            "name": "терракотовый",
+            "hex": "#b5543a",
+            "family": "тёплый",
+            "share": 0.4
+          },
+          {
+            "name": "горчичный",
+            "hex": "#c9a227",
+            "family": "тёплый",
+            "share": 0.03
+          }
+        ],
+        "auto": false
+      },
+      "pattern": "принт / надпись",
+      "material": "100% хлопок",
+      "size": "170 см (детская линейка, для мальчика)",
+      "warmth": 1,
+      "season": [
+        "межсезонье",
+        "лето"
+      ],
+      "thickness": "тонкая",
+      "temp": [
+        15,
+        25
+      ],
+      "layer": "база",
+      "formality": 2,
+      "windproof": false,
+      "waterproof": false,
+      "sheer": "немного просвечивает на свет",
+      "occasions": [],
+      "condition": "хорошее",
+      "flaws": [],
+      "added": "2026-11-08",
+      "purchased": {
+        "date": "2025-02",
+        "approx": true,
+        "text": "1,5–2 года назад"
+      },
+      "care": "30°, деликатная стирка, без отбеливателя, без сушилки, гладить до 110° без пара, принт не гладить, без химчистки",
+      "notes": "Рукава терракотовые, ворот горчичный, принт бархатистый (флок). Сделано в Бангладеш, дата изготовления 16.03.2021. Детский рост 170 — по длине подходит при росте 165.",
+      "photos": [
+        "wardrobe/photos/top-004-1.webp",
+        "wardrobe/photos/top-004-2.jpg",
+        "wardrobe/photos/top-004-3.jpg",
+        "wardrobe/photos/top-004-4.jpg",
+        "wardrobe/photos/top-004-5.jpg"
+      ],
+      "history": [
+        {
+          "date": "2026-11-08",
+          "event": "added"
+        }
+      ]
+    },
+    {
+      "id": "top-005",
+      "status": "active",
+      "name": "Футболка спортивная белая",
+      "category": "Верх",
+      "type": "футболка",
+      "color": {
+        "name": "белый",
+        "hex": "#f5f5f2",
+        "family": "нейтральный",
+        "tone": "светлый",
+        "secondary": [],
+        "auto": false
+      },
+      "pattern": "однотонный",
+      "material": "тонкая синтетика в мелкий рубчик (бирки нет; по виду полиэстер, «дышащая» спортивная ткань)",
+      "warmth": 1,
+      "season": [
+        "лето"
+      ],
+      "thickness": "тонкая",
+      "temp": [
+        22,
+        40
+      ],
+      "layer": "база",
+      "formality": 1,
+      "windproof": false,
+      "waterproof": false,
+      "sheer": "просвечивает на свет",
+      "occasions": [
+        "Спорт",
+        "Дом",
+        "Повседневно"
+      ],
+      "condition": "есть дефекты",
+      "flaws": [
+        "выцвел цвет",
+        "пятно"
+      ],
+      "flaw_notes": "Лого на груди почти стёрлось. Внизу спереди слева — мелкие тёмные чёрточки (видно на фото 1 и 3), стоит попробовать отстирать.",
+      "added": "2026-11-08",
+      "purchased": null,
+      "notes": "Не оригинал (под Under Armour), бирок нет. Для спорта, дома и жары; на работу не годится — тонкая и просвечивает.",
+      "photos": [
+        "wardrobe/photos/top-005-1.jpg",
+        "wardrobe/photos/top-005-2.jpg",
+        "wardrobe/photos/top-005-3.jpg",
+        "wardrobe/photos/top-005-4.jpg"
+      ],
+      "history": [
+        {
+          "date": "2026-11-08",
+          "event": "added"
+        }
+      ]
+    },
+    {
+      "id": "top-006",
+      "status": "active",
+      "name": "Кардиган на молнии в полоску",
+      "category": "Верх",
+      "type": "кардиган",
+      "color": {
+        "name": "молочный",
+        "hex": "#efe6d2",
+        "family": "нейтральный",
+        "tone": "светлый",
+        "secondary": [
+          {
+            "name": "графит",
+            "hex": "#3a3d42",
+            "family": "нейтральный",
+            "share": 0.12
+          }
+        ],
+        "auto": false
+      },
+      "pattern": "полоска",
+      "material": "100% хлопок, плотная вязка в рубчик",
+      "size": "M",
+      "warmth": 3,
+      "season": [
+        "межсезонье",
+        "зима"
+      ],
+      "thickness": "средняя",
+      "temp": [
+        8,
+        18
+      ],
+      "layer": "средний / верхний",
+      "formality": 3,
+      "windproof": false,
+      "waterproof": false,
+      "occasions": [],
+      "condition": "хорошее",
+      "flaws": [],
+      "added": "2026-11-08",
+      "purchased": null,
+      "care": "Ручная стирка, без отбеливателя, без сушилки, гладить до 110°, без химчистки",
+      "notes": "Вязаная кофта-бомбер: воротник-стойка, двухсторонняя молния. Носить поверх футболки или лонгслива; одна — примерно до +15 в сухую погоду, холоднее — под куртку. Полоски горизонтальные: с однотонным низом, второй узор не добавлять.",
+      "photos": [
+        "wardrobe/photos/top-006-1.jpg",
+        "wardrobe/photos/top-006-2.jpg",
+        "wardrobe/photos/top-006-3.jpg"
+      ],
+      "history": [
+        {
+          "date": "2026-11-08",
+          "event": "added"
+        }
+      ]
     }
   ],
   "wishlist": [
