@@ -1,0 +1,8 @@
+# Гардероб Исмоила
+
+> Каталог одежды и обуви владельца (мужчина, 165 см, Душанбе) с фото, состоянием, сезоном, цветом и стилем каждой вещи. Нужен, чтобы любой AI мог собрать образ на сегодня или проверить покупку.
+
+- [Каталог (JSON)](https://ismoil77.github.io/project/wardrobe/wardrobe.json): все вещи, список покупок, профиль цветов
+- [Как собирать образ](https://ismoil77.github.io/project/wardrobe/AI_GUIDE.md): алгоритм для AI — погода, слои, стиль, цвет, обувь
+- [Описание полей](https://ismoil77.github.io/project/wardrobe/SCHEMA.md) и [JSON Schema](https://ismoil77.github.io/project/wardrobe/wardrobe.schema.json)
+- [Сайт](https://ismoil77.github.io/project/)

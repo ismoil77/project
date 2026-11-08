@@ -28,6 +28,11 @@ body:
     attributes:
       label: "Категория"
       options: ["Верх", "Низ", "Верхняя одежда", "Обувь", "Аксессуары"]
+  - type: input
+    id: type
+    attributes:
+      label: "Тип"
+      placeholder: "футболка / джинсы / худи / кроссовки / туфли / ботинки / ремень"
   - type: dropdown
     id: season
     attributes:
@@ -38,6 +43,16 @@ body:
         - "Межсезонье — средняя (худи, плотный свитер, джинсы)"
         - "Межсезонье — тёплая (демисезонная куртка)"
         - "Зима — очень тёплая (пуховик, зимние ботинки)"
+  - type: dropdown
+    id: formality
+    attributes:
+      label: "Стиль"
+      options:
+        - "1 — спорт (спортивка, беговые кроссовки)"
+        - "2 — повседневный (футболка, худи, джинсы, кеды)"
+        - "3 — смарт-кэжуал (рубашка, чиносы, свитер, лоферы, кожаные кроссовки)"
+        - "4 — деловой (брюки, пиджак, туфли)"
+        - "5 — строгий / торжество (костюм, классические туфли)"
   - type: input
     id: purchased
     attributes:
@@ -88,6 +103,12 @@ body:
     attributes:
       label: "Цвет"
       placeholder: "тёмно-синий"
+      description: "Можно не писать — цвет определится по фото автоматически."
+  - type: dropdown
+    id: pattern
+    attributes:
+      label: "Узор"
+      options: ["Однотонный", "Полоска", "Клетка", "Принт / надпись", "Камуфляж", "Другой"]
   - type: input
     id: material
     attributes:
@@ -97,6 +118,12 @@ body:
     id: size
     attributes:
       label: "Размер"
+      placeholder: "48 / M / W31 L32 / 40"
+  - type: input
+    id: insole
+    attributes:
+      label: "Длина стельки, см (для обуви)"
+      placeholder: "26,5"
   - type: checkboxes
     id: protection
     attributes:

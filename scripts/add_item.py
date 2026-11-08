@@ -20,6 +20,9 @@ import sys
 from io import BytesIO
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import colors  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "wardrobe" / "wardrobe.json"
 PHOTOS = ROOT / "wardrobe" / "photos"
@@ -34,14 +37,9 @@ SEASON_OPTIONS = {
     "Межсезонье — тёплая":  (4, ["межсезонье", "зима"], "плотная", [-2, 12]),
     "Зима":                 (5, ["зима"], "плотная", [-20, 5]),
 }
+SHOE_TEMP = {1: [18, 45], 2: [5, 35], 3: [0, 25], 4: [-10, 15], 5: [-25, 5]}
 PREFIX = {"Верх": "top", "Низ": "bottom", "Верхняя одежда": "outer", "Обувь": "shoes", "Аксессуары": "acc"}
 CONDITION = {"Отличное": "отличное", "Хорошее": "хорошее", "Есть дефекты": "есть дефекты", "Только для дома": "только дом/спорт"}
-COLOR_HEX = {"белый": "#f5f5f2", "чёрный": "#151515", "черный": "#151515", "серый": "#8d9096", "графит": "#3a3d42",
-             "тёмно-синий": "#1f2a44", "темно-синий": "#1f2a44", "синий": "#2c4f8a", "голубой": "#8fb3d9",
-             "бежевый": "#d8c3a5", "экрю": "#efe6d2", "молочный": "#f1ead9", "коричневый": "#6b4a32",
-             "шоколадный": "#4a2c1d", "хаки": "#8a7f55", "оливковый": "#5b5f2f", "зелёный": "#2f6b3f",
-             "зеленый": "#2f6b3f", "бордовый": "#6d1f2a", "красный": "#b3261e", "терракотовый": "#b5543a",
-             "розовый": "#e7a6b8", "жёлтый": "#e2c044", "желтый": "#e2c044", "фиолетовый": "#5e3c8c", "деним": "#3b5a7d"}
 MONTHS = ["январ", "феврал", "март", "апрел", "ма[йяе]\\b", "июн", "июл", "август", "сентябр", "октябр", "ноябр", "декабр"]
 SEASON_MONTH = {"зим": 1, "весн": 4, "лет": 7, "осен": 10}
 
@@ -150,14 +148,6 @@ def save(img, path: Path):
     img.save(path, "WEBP", quality=82, method=6)
 
 
-def dominant_hex(img) -> str:
-    small = img.convert("RGBA").copy()
-    small.thumbnail((80, 80))
-    px = [p for p in small.getdata() if p[3] > 200]
-    if not px:
-        return "#999999"
-    r, g, b = (sum(p[i] for p in px) // len(px) for i in range(3))
-    return f"#{r:02x}{g:02x}{b:02x}"
 
 
 # ---------------------------------------------------------------- item updates
@@ -190,12 +180,20 @@ def apply_fields(item: dict, f: dict, is_new: bool) -> list[str]:
     put("notes", get(f, "Заметки"), "заметки")
     color = get(f, "Цвет")
     if color:
-        item["color"] = {"name": color, "hex": COLOR_HEX.get(color.lower(), (item.get("color") or {}).get("hex"))}
+        item["color"] = colors.from_name(color, item.get("color"))
         changed.append("цвет")
+    put("type", get(f, "Тип").lower(), "тип")
+    put("pattern", get(f, "Узор").split(" —")[0].lower(), "узор")
+    formality = get(f, "Стиль")
+    if formality[:1].isdigit():
+        put("formality", int(formality[0]), "стиль")
+    put("insole_cm", get(f, "Длина стельки").replace(",", "."), "длина стельки")
 
     season = get(f, "Сезон и плотность")
     for key, (warmth, seasons, thickness, temp) in SEASON_OPTIONS.items():
         if season.startswith(key):
+            if (get(f, "Категория") or item.get("category")) == "Обувь":
+                temp = SHOE_TEMP[warmth]  # shoes are fine in a much wider range than clothes
             item.update(warmth=warmth, season=seasons, thickness=thickness, temp=temp)
             changed.append("сезон")
             break
@@ -229,6 +227,9 @@ def apply_fields(item: dict, f: dict, is_new: bool) -> list[str]:
 
     if is_new:
         cat = item.get("category", "Верх")
+        item.setdefault("formality", 2)
+        if cat == "Обувь":
+            item.update(layer="обувь")
         item["layer"] = {"Верхняя одежда": "верхний", "Низ": "база", "Обувь": "обувь", "Аксессуары": "аксессуар"}.get(
             cat, "база" if item.get("warmth", 2) <= 1 else "средний")
     return changed
@@ -241,7 +242,7 @@ def new_item(items, f) -> dict:
         "status": "active",
         "name": get(f, "Название") or "Новая вещь",
         "category": category,
-        "color": {"name": "", "hex": None},
+        "color": {},
         "warmth": 2, "season": ["межсезонье"], "thickness": "тонкая", "temp": [13, 22],
         "windproof": False, "waterproof": False,
         "condition": "хорошее", "flaws": [], "occasions": [],
@@ -281,8 +282,13 @@ def add(data, f, token) -> str:
         name = f"{item['id']}-{start + n + 1}.webp"
         save(out, PHOTOS / name)
         item["photos"].append(f"wardrobe/photos/{name}")
-        if start + n == 0 and not item["color"].get("hex"):
-            item["color"]["hex"] = dominant_hex(out)
+        if start + n == 0:
+            auto = colors.analyze(out)
+            user = item.get("color") or {}
+            if user.get("auto") is False and user.get("name"):
+                item["color"] = {**auto, **user, "secondary": auto.get("secondary", [])}
+            else:
+                item["color"] = auto
 
     if is_new:
         log(item, "added")
@@ -323,6 +329,11 @@ def main():
     data = json.loads(DATA.read_text(encoding="utf-8"))
     form = os.environ.get("FORM", "add")
     msg = archive(data, f) if form == "archive" else add(data, f, os.environ.get("GITHUB_TOKEN", ""))
+    try:  # never commit a catalogue that breaks the schema
+        import jsonschema
+        jsonschema.validate(data, json.loads((ROOT / "wardrobe" / "wardrobe.schema.json").read_text(encoding="utf-8")))
+    except ImportError:
+        pass
     DATA.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     msg += "\n\nСайт обновится через 1–2 минуты: https://ismoil77.github.io/project/#items"
     Path(os.environ.get("RESULT_FILE", "result.md")).write_text(msg, encoding="utf-8")
@@ -332,6 +343,8 @@ def main():
 if __name__ == "__main__":
     if len(sys.argv) == 4 and sys.argv[1] == "cutout":
         save(cutout(load(sys.argv[2])), Path(sys.argv[3]))
+    elif len(sys.argv) == 3 and sys.argv[1] == "color":
+        print(colors.analyze(load(sys.argv[2])))
     elif len(sys.argv) == 3 and sys.argv[1] == "purchased":
         print(parse_purchased(sys.argv[2]))
     else:
