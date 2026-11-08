@@ -98,6 +98,33 @@ def image_urls(text: str) -> list[str]:
     return out
 
 
+def checked(value: str) -> list[str]:
+    """Checked options of an issue-form checkbox block ('- [x] Label')."""
+    return [m.strip() for m in re.findall(r"^- \[[xX]\] (.+)$", value or "", flags=re.M)]
+
+
+CONDITION = {"Отличное": "отличное", "Хорошее": "хорошее", "Есть дефекты": "есть дефекты", "Только для дома": "только дом/спорт"}
+
+
+def apply_condition(item: dict, f: dict, is_new: bool):
+    """Condition, flaws and where-to-wear; for existing items only fields the user filled change."""
+    cond = f.get("Состояние", "")
+    for key, val in CONDITION.items():
+        if cond.startswith(key):
+            item["condition"] = val
+    flaws = [x.lower() for x in checked(f.get("Дефекты", ""))]
+    if flaws:
+        item["flaws"] = sorted(set(item.get("flaws", [])) | set(flaws))
+    notes = f.get("Подробнее о дефектах", "").strip()
+    if notes:
+        item["flaw_notes"] = notes
+    occ = checked(f.get("Где можно носить", ""))
+    if occ:
+        item["occasions"] = occ
+    elif is_new and item.get("condition") == "только дом/спорт":
+        item["occasions"] = ["Дом", "Спорт"]
+
+
 def next_id(items, prefix):
     nums = [int(m.group(1)) for i in items if (m := re.fullmatch(prefix + r"-(\d+)", i["id"]))]
     return f"{prefix}-{max(nums, default=0) + 1:03d}"
@@ -111,15 +138,15 @@ def main():
     items = data["items"]
 
     urls = image_urls(f.get("Фото", ""))
-    if not urls:
-        raise SystemExit("Не нашёл ни одного фото. Прикрепи фото в поле «Фото».")
-
     existing = f.get("Добавить фото к существующей вещи (id)", "").strip()
     if existing:
         item = next((i for i in items if i["id"] == existing), None)
         if not item:
             raise SystemExit(f"Вещь с id «{existing}» не найдена.")
+        apply_condition(item, f, is_new=False)
     else:
+        if not urls:
+            raise SystemExit("Не нашёл ни одного фото. Прикрепи фото в поле «Фото».")
         category = f.get("Категория") or "Верх"
         warmth = int((f.get("Насколько тёплая") or "2")[0])
         protection = f.get("Защита от погоды", "")
@@ -143,6 +170,7 @@ def main():
             "photos": [],
         }
         item = {k: v for k, v in item.items() if v is not None}
+        apply_condition(item, f, is_new=True)
         items.append(item)
 
     mode = f.get("Удалить фон", "На всех фото")
@@ -162,7 +190,14 @@ def main():
             item.setdefault("color", {})["hex"] = dominant_hex(out)
 
     DATA.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    msg = (f"Готово: «{item['name']}» (`{item['id']}`), фото добавлено: {len(urls)}.\n\n"
+    extra = ""
+    if item.get("condition"):
+        extra += f"\nСостояние: {item['condition']}."
+    if item.get("flaws"):
+        extra += f"\nДефекты: {', '.join(item['flaws'])}."
+    if item.get("occasions"):
+        extra += f"\nГде носить: {', '.join(item['occasions'])}."
+    msg = (f"Готово: «{item['name']}» (`{item['id']}`), фото добавлено: {len(urls)}.{extra}\n\n"
            f"Смотри на сайте через 1–2 минуты: https://ismoil77.github.io/project/#items")
     Path(os.environ.get("RESULT_FILE", "result.md")).write_text(msg, encoding="utf-8")
     print(msg)

@@ -1,5 +1,5 @@
 name: "👕 Добавить вещь"
-description: "Новая вещь в гардероб или новые фото к существующей. Фон удалится автоматически."
+description: "Новая вещь, новые фото или изменения (состояние, дефекты) к существующей. Фон удалится автоматически."
 title: "Вещь: "
 labels: ["new-item"]
 body:
@@ -17,9 +17,7 @@ body:
     id: photos
     attributes:
       label: "Фото"
-      description: "Нажми сюда и прикрепи одно или несколько фото (скрепка / «Paste, drop, or click to add files»)."
-    validations:
-      required: true
+      description: "Прикрепи одно или несколько фото («Paste, drop, or click to add files»). Для существующей вещи можно оставить пустым, если меняешь только состояние или дефекты."
   - type: dropdown
     id: removebg
     attributes:
@@ -79,6 +77,43 @@ body:
       options:
         - label: "Держит ветер"
         - label: "Непромокаемая"
+  - type: dropdown
+    id: condition
+    attributes:
+      label: "Состояние"
+      options:
+        - "Отличное — как новая"
+        - "Хорошее — есть следы носки"
+        - "Есть дефекты — видно вблизи"
+        - "Только для дома / спорта"
+  - type: checkboxes
+    id: flaws
+    attributes:
+      label: "Дефекты"
+      description: "Отметь, если есть. Можно добавлять и к существующей вещи (через id)."
+      options:
+        - label: "Выцвел цвет"
+        - label: "Пятно"
+        - label: "Катышки"
+        - label: "Дырка / зацепка"
+        - label: "Растянулась / села"
+        - label: "Сломана молния / пуговица"
+  - type: textarea
+    id: flaw_notes
+    attributes:
+      label: "Подробнее о дефектах"
+      placeholder: "Пятно на левом рукаве, видно только вблизи"
+  - type: checkboxes
+    id: occasions
+    attributes:
+      label: "Где можно носить"
+      description: "Если ничего не отметить — везде, кроме случаев, которые запрещает состояние."
+      options:
+        - label: "Работа"
+        - label: "Повседневно"
+        - label: "Спорт"
+        - label: "Дом"
+        - label: "Праздник / выход"
   - type: input
     id: link
     attributes:

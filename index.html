@@ -69,6 +69,14 @@ h2{font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--mute
 .days .w b{font-size:17px}
 .days .w .o{color:var(--muted);display:block;margin-top:2px}
 .days .u{font-size:22px;color:var(--warn)}
+.seg{display:flex;gap:6px;overflow-x:auto;margin:0 -16px 12px;padding:0 16px;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{flex:0 0 auto;border:1px solid var(--line);background:var(--card);padding:8px 13px;border-radius:12px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap}
+.seg button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.excl{margin-top:10px;font-size:12.5px;color:var(--muted);line-height:1.45}
+.flaw{position:absolute;right:8px;top:8px;background:color-mix(in srgb,var(--warn) 92%,#000);color:#fff;font-size:10.5px;font-weight:800;padding:4px 7px;border-radius:999px;max-width:60%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cond{display:inline-block;font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px;background:var(--chip);margin-left:6px;vertical-align:2px}
+.cond.bad{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
 .slider{padding:18px}
 .slider .rowx{display:flex;align-items:center;gap:14px}
 .slider output{font-size:34px;font-weight:800;min-width:84px;letter-spacing:-1px}
@@ -173,6 +181,7 @@ dialog::backdrop{background:rgba(15,14,12,.5);backdrop-filter:blur(3px)}
   </header>
 
   <section class="view" id="v-today">
+    <div class="seg" id="occ"></div>
     <div class="card hero" id="hero"><div class="when">Загружаю прогноз…</div></div>
     <h2>Ближайшие дни</h2>
     <div class="card days" id="days"></div>
@@ -229,6 +238,18 @@ const isCut = p => /\.(webp|png)$/i.test(p);
 const img = (p, alt = '') => `<img loading="lazy" src="${esc(p)}" alt="${esc(alt)}" class="${isCut(p) ? '' : 'cover'}">`;
 const warmth = n => `<span class="warm" title="Теплота ${n}/5">${[1,2,3,4,5].map(i => `<i class="${i<=n?'f':''}"></i>`).join('')}</span>`;
 let DATA, cat = 'Все', query = '';
+const OCCS = ['Работа','Повседневно','Спорт','Дом','Праздник / выход'];
+const defaultOcc = () => { const d = new Date(Date.now() + 5*3600e3).getUTCDay(); return d >= 1 && d <= 5 ? 'Работа' : 'Повседневно'; };
+let OCC = sessionStorage.getItem('occ') || defaultOcc();
+const hasFlaws = i => (i.flaws?.length > 0) || i.condition === 'есть дефекты';
+const flawText = i => (i.flaws?.length ? i.flaws.join(', ') : i.condition === 'есть дефекты' ? 'дефект' : '');
+// Can this item be worn for the selected occasion?
+function allowed(i, occ = OCC){
+  if (i.occasions?.length && !i.occasions.includes(occ)) return false;
+  if (occ === 'Праздник / выход' && (hasFlaws(i) || i.condition === 'только дом/спорт')) return false;
+  if (occ === 'Работа' && i.condition === 'только дом/спорт') return false;
+  return true;
+}
 
 $('#addTop').href = ISSUE('&title=' + encodeURIComponent('Вещь: '));
 
@@ -245,7 +266,7 @@ function route(){
 addEventListener('hashchange', route);
 
 fetch('wardrobe/wardrobe.json', {cache: 'no-store'}).then(r => r.json()).then(d => {
-  DATA = d; route(); renderItems(); renderWish(); renderColors(); initSlider(); loadWeather();
+  DATA = d; renderOcc(); route(); renderItems(); renderWish(); renderColors(); initSlider(); loadWeather();
 });
 
 /* ---------- items ---------- */
@@ -266,15 +287,17 @@ function bindDots(root){
 }
 function renderItems(){
   const counts = DATA.items.reduce((a, i) => (a[i.category] = (a[i.category]||0) + 1, a), {});
-  const cats = ['Все', ...Object.keys(counts)];
+  const flawN = DATA.items.filter(hasFlaws).length;
+  const cats = ['Все', ...Object.keys(counts), ...(flawN ? ['⚠ С дефектами'] : [])];
+  counts['⚠ С дефектами'] = flawN;
   $('#chips').innerHTML = cats.map(c => `<button class="${c===cat?'on':''}" data-c="${esc(c)}">${esc(c)}<small>${c==='Все'?DATA.items.length:counts[c]}</small></button>`).join('');
   const q = query.toLowerCase();
-  const list = DATA.items.filter(i => (cat === 'Все' || i.category === cat) &&
-    (!q || [i.name, i.brand, i.color?.name, i.material, i.type, i.category].join(' ').toLowerCase().includes(q)));
+  const list = DATA.items.filter(i => (cat === 'Все' || i.category === cat || (cat === '⚠ С дефектами' && hasFlaws(i))) &&
+    (!q || [i.name, i.brand, i.color?.name, i.material, i.type, i.category, ...(i.flaws||[]), i.flaw_notes, ...(i.occasions||[])].join(' ').toLowerCase().includes(q)));
   $('#grid').innerHTML = (list.length ? '' : '<div class="empty" style="grid-column:1/-1">Ничего не найдено</div>') +
     list.map(i => `
     <article class="card item" data-id="${esc(i.id)}">
-      <div class="car">${carousel(i.photos, i.name)}<span class="badge">${fmtT(i.temp[0])}…${fmtT(i.temp[1])}</span></div>
+      <div class="car">${carousel(i.photos, i.name)}<span class="badge">${fmtT(i.temp[0])}…${fmtT(i.temp[1])}</span>${hasFlaws(i) ? `<span class="flaw">⚠ ${esc(flawText(i))}</span>` : ''}</div>
       <div class="b">${i.brand ? `<div class="brand">${esc(i.brand)}</div>` : ''}<div class="n">${esc(i.name)}</div>
         <div class="m"><span><span class="sw" style="background:${esc(i.color?.hex||'#999')}"></span>${esc(i.color?.name||'')}</span>${warmth(i.warmth)}</div></div>
     </article>`).join('') +
@@ -291,16 +314,18 @@ function openItem(id){
   const rows = [['Категория', i.type || i.category], ['Цвет', i.color?.name], ['Состав', i.material], ['Размер', i.size], ['Артикул', i.article],
     ['Носить при', fmtT(i.temp[0]) + ' … ' + fmtT(i.temp[1])], ['Теплота', i.warmth + ' / 5'], ['Слой', i.layer],
     ['Защита', [i.windproof && 'ветер', i.waterproof === true ? 'дождь' : i.waterproof].filter(Boolean).join(', ')],
-    ['Уход', i.care], ['Заметки', i.notes], ['ID', i.id]].filter(r => r[1]);
+    ['Состояние', i.condition], ['Дефекты', (i.flaws||[]).join(', ')], ['Где дефект', i.flaw_notes],
+    ['Где носить', (i.occasions||[]).join(', ') || 'везде'], ['Уход', i.care], ['Заметки', i.notes], ['ID', i.id]].filter(r => r[1]);
   $('#dlgBody').innerHTML = `
     <div class="grab"></div>
     <div class="gal"><div class="track">${ph.map(p => img(p, i.name)).join('')}</div>${ph.length > 1 ? `<span class="cnt">1 / ${ph.length}</span>` : ''}</div>
     ${ph.length > 1 ? `<div class="thumbs">${ph.map((p, k) => `<img src="${esc(p)}" data-k="${k}" class="${k?'':'on'}" alt="">`).join('')}</div>` : ''}
-    <div class="sheet">${i.brand ? `<div class="brand">${esc(i.brand)}</div>` : ''}<h3>${esc(i.name)}</h3>
+    <div class="sheet">${i.brand ? `<div class="brand">${esc(i.brand)}</div>` : ''}<h3>${esc(i.name)}${i.condition ? `<span class="cond ${hasFlaws(i)||i.condition==='только дом/спорт'?'bad':''}">${esc(i.condition)}</span>` : ''}</h3>
       <dl>${rows.map(r => `<dt>${r[0]}</dt><dd>${esc(r[1])}</dd>`).join('')}</dl>
       <div class="acts">
         <a class="btn pri" target="_blank" rel="noopener" href="${ISSUE('&existing=' + encodeURIComponent(i.id) + '&title=' + encodeURIComponent('Фото: ' + i.name))}">+ Фото</a>
-        ${i.link ? `<a class="btn sec" target="_blank" rel="noopener" href="${esc(i.link)}">Товар ↗</a>` : `<button class="btn sec" onclick="dlg.close()">Закрыть</button>`}
+        <a class="btn sec" target="_blank" rel="noopener" href="${ISSUE('&existing=' + encodeURIComponent(i.id) + '&title=' + encodeURIComponent('Состояние: ' + i.name))}">⚠ Дефект / состояние</a>
+        ${i.link ? `<a class="btn sec" style="grid-column:1/-1" target="_blank" rel="noopener" href="${esc(i.link)}">Товар ↗</a>` : ''}
       </div></div>`;
   const body = $('#dlgBody');
   bindDots(body);
@@ -310,6 +335,11 @@ function openItem(id){
   $('#dlg').showModal();
 }
 $('#dlg').addEventListener('click', e => { if (e.target.id === 'dlg') dlg.close(); });
+
+function renderOcc(){
+  $('#occ').innerHTML = OCCS.map(o => `<button class="${o===OCC?'on':''}" data-o="${esc(o)}">${esc(o)}</button>`).join('');
+}
+$('#occ').onclick = e => { const b = e.target.closest('button'); if (!b) return; OCC = b.dataset.o; sessionStorage.setItem('occ', OCC); renderOcc(); initSlider(); loadWeather(); };
 
 /* ---------- wishlist & colors ---------- */
 function renderWish(){
@@ -328,13 +358,14 @@ function renderColors(){
 
 /* ---------- outfit logic ---------- */
 function outfit(t, rain){
-  const tops = DATA.items.filter(i => i.category === 'Верх');
+  const pool = DATA.items.filter(i => allowed(i));
+  const tops = pool.filter(i => i.category === 'Верх');
   const base = tops.filter(i => i.warmth <= 1);
   const mids = tops.filter(i => i.warmth >= 2).sort((a,b) => a.temp[1] - b.temp[1]);
-  const outer = DATA.items.filter(i => i.category === 'Верхняя одежда' && t <= i.temp[1] + 3)
+  const outer = pool.filter(i => i.category === 'Верхняя одежда' && t <= i.temp[1] + 3)
     .sort((a,b) => (rain ? (b.waterproof===true) - (a.waterproof===true) : 0) || a.warmth - b.warmth);
-  const bottoms = DATA.items.filter(i => i.category === 'Низ' && t <= i.temp[1] + 3 && t >= i.temp[0] - 8);
-  const shoes = DATA.items.filter(i => i.category === 'Обувь' && t <= i.temp[1] + 3 && t >= i.temp[0] - 5);
+  const bottoms = pool.filter(i => i.category === 'Низ' && t <= i.temp[1] + 3 && t >= i.temp[0] - 8);
+  const shoes = pool.filter(i => i.category === 'Обувь' && t <= i.temp[1] + 3 && t >= i.temp[0] - 5);
   const layers = t >= 20 ? 0 : t >= 13 ? 1 : 2;
   const pick = [...base.slice(0,1), ...mids.slice(0, layers)];
   const needOuter = t < 10 || (rain && t < 16);
@@ -344,7 +375,17 @@ function outfit(t, rain){
   if (needOuter && !outer.length) { missing.push('Куртка'); warns.push('Нужна куртка — её пока нет, она в списке покупок.'); }
   if (rain && !pick.some(i => i.waterproof === true)) warns.push('☂︎ Возьми зонт.');
   if (t < 3) warns.push('Шапка и перчатки.');
-  return {pick, missing, warns};
+  if (!tops.length) missing.unshift('Верх');
+  if (!bottoms.length) missing.push('Низ');
+  const excluded = DATA.items.filter(i => !allowed(i));
+  const flawed = pick.filter(hasFlaws);
+  return {pick, missing, warns, excluded, flawed};
+}
+function exclHTML(o){
+  const parts = [];
+  if (o.flawed.length) parts.push('Учти: ' + o.flawed.map(i => `${esc(i.name)} — ${esc(flawText(i))}`).join('; ') + '.');
+  if (o.excluded.length) parts.push(`Не для «${esc(OCC)}»: ` + o.excluded.map(i => esc(i.name) + (hasFlaws(i) ? ` (${esc(flawText(i))})` : '')).join(', ') + '.');
+  return parts.length ? `<div class="excl">${parts.join('<br>')}</div>` : '';
 }
 function lookHTML(o){
   return o.pick.map(i => `<div class="it" data-id="${esc(i.id)}"><div class="im">${i.photos?.[0] ? img(i.photos[0], i.name) : ''}</div>${esc(i.name)}</div>`).join('') +
@@ -354,7 +395,7 @@ document.addEventListener('click', e => { const it = e.target.closest('.look .it
 function initSlider(){
   const t = $('#t'), f = () => {
     const o = outfit(+t.value, false); $('#tOut').textContent = fmtT(+t.value);
-    $('#tLook').innerHTML = lookHTML(o); $('#tWarn').innerHTML = o.warns.map(w => `<div>${esc(w)}</div>`).join('');
+    $('#tLook').innerHTML = lookHTML(o); $('#tWarn').innerHTML = o.warns.map(w => `<div>${esc(w)}</div>`).join('') + exclHTML(o);
   };
   t.oninput = f; f();
 }
@@ -399,10 +440,10 @@ async function loadWeather(){
   const dm = x => { const d = new Date(x.date + 'T12:00'); return `${d.getDate()}.${String(d.getMonth()+1).padStart(2,'0')}`; };
   const h = days[0], o = outfit(h.feel, h.rainHour !== null);
   $('#hero').innerHTML = `
-    <div class="when"><span>${label(h)} · утром</span><span>${dm(h)}</span></div>
+    <div class="when"><span>${label(h)} · утром · ${esc(OCC.toLowerCase())}</span><span>${dm(h)}</span></div>
     <div class="big"><b>${fmtT(h.morning)}</b><span>ощущается ${fmtT(h.feel)}<br>днём ${fmtT(h.max)} · вечером ${fmtT(h.evening)}</span></div>
     <span class="pill ${h.rainHour!==null?'rain':''}">${h.rainHour!==null ? `☂︎ Дождь с ~${h.rainHour}:00 · ${h.maxP}` : `☀︎ Без зонта · ${h.maxP}`}</span>
-    <div class="look">${lookHTML(o)}</div><div class="warns">${o.warns.map(w => `<div>${esc(w)}</div>`).join('')}</div>`;
+    <div class="look">${lookHTML(o)}</div><div class="warns">${o.warns.map(w => `<div>${esc(w)}</div>`).join('')}</div>${exclHTML(o)}`;
   $('#days').innerHTML = days.slice(1, 4).map(x => {
     const oo = outfit(x.feel, x.rainHour !== null);
     return `<div class="row"><div class="d"><b>${label(x)}</b><span>${dm(x)}</span></div>
