@@ -272,7 +272,9 @@ async function loadWeather(){
   const wd = ['вс','пн','вт','ср','чт','пт','сб'];
   $('#weather').innerHTML = days.map((x, k) => {
     const dt = new Date(x.date + 'T12:00:00');
-    const label = k === 0 ? 'Сегодня' : k === 1 ? 'Завтра' : wd[dt.getDay()];
+    const today = new Date(Date.now() + TZ_OFF * 3600e3).toISOString().slice(0,10);
+    const diff = Math.round((new Date(x.date) - new Date(today)) / 864e5);
+    const label = diff === 0 ? 'Сегодня' : diff === 1 ? 'Завтра' : wd[dt.getDay()];
     const rain = x.rainHour !== null;
     return `<div class="day">
       <div class="d"><span>${label}</span><span style="color:var(--muted)">${dt.getDate()}.${String(dt.getMonth()+1).padStart(2,'0')}</span></div>
