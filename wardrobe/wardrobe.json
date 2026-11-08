@@ -24,7 +24,8 @@
     "куртка": 4.5,
     "пуховик": 5,
     "лонгслив": 2.5,
-    "кардиган": 3.5
+    "кардиган": 3.5,
+    "джоггеры": 3
   },
   "owner": {
     "name": "Исмоил",
@@ -648,6 +649,131 @@
         "wardrobe/photos/bottom-001-3.jpg",
         "wardrobe/photos/bottom-001-4.jpg",
         "wardrobe/photos/bottom-001-5.jpg"
+      ],
+      "history": [
+        {
+          "date": "2026-11-08",
+          "event": "added"
+        }
+      ]
+    },
+    {
+      "id": "bottom-002",
+      "status": "active",
+      "name": "Джоггеры чёрные утеплённые",
+      "category": "Низ",
+      "type": "джоггеры",
+      "color": {
+        "name": "чёрный",
+        "hex": "#151515",
+        "family": "нейтральный",
+        "tone": "тёмный",
+        "secondary": [],
+        "auto": false
+      },
+      "pattern": "однотонный",
+      "material": "верх 100% хлопок (футер), подкладка 100% полиэстер",
+      "size": "L (175/80A — китайская сетка: рост 175, талия 80)",
+      "warmth": 3,
+      "season": [
+        "межсезонье",
+        "зима"
+      ],
+      "thickness": "средняя",
+      "temp": [
+        0,
+        16
+      ],
+      "layer": "база",
+      "formality": 1,
+      "windproof": false,
+      "waterproof": false,
+      "occasions": [
+        "Повседневно",
+        "Спорт",
+        "Дом"
+      ],
+      "condition": "отличное",
+      "flaws": [],
+      "added": "2026-11-08",
+      "purchased": {
+        "date": "2026-05",
+        "approx": true,
+        "text": "около полугода назад"
+      },
+      "care": "30°, деликатная стирка, без отбеливателя, сушить в расправленном виде, гладить до 110°, без химчистки",
+      "notes": "Резинка со шнурком, манжеты внизу, вышитый цветок у кармана в тон. Тёплые — хороши в холодное утро, на работу по стилю простоваты.",
+      "photos": [
+        "wardrobe/photos/bottom-002-1.jpg",
+        "wardrobe/photos/bottom-002-2.jpg",
+        "wardrobe/photos/bottom-002-3.jpg",
+        "wardrobe/photos/bottom-002-4.jpg"
+      ],
+      "history": [
+        {
+          "date": "2026-11-08",
+          "event": "added"
+        }
+      ]
+    },
+    {
+      "id": "bottom-003",
+      "status": "active",
+      "name": "Джинсы чёрные варёные",
+      "brand": "Zara (скорее всего не оригинал)",
+      "category": "Низ",
+      "type": "джинсы",
+      "color": {
+        "name": "графит",
+        "hex": "#3a3d42",
+        "family": "нейтральный",
+        "tone": "тёмный",
+        "secondary": [
+          {
+            "name": "серый",
+            "hex": "#8d9096",
+            "family": "нейтральный",
+            "share": 0.35
+          }
+        ],
+        "auto": false
+      },
+      "pattern": "однотонный",
+      "material": "85% хлопок, 15% полиэстер, плотный деним (варка «snow wash»)",
+      "size": "W29",
+      "warmth": 3,
+      "season": [
+        "межсезонье",
+        "зима"
+      ],
+      "thickness": "средняя",
+      "temp": [
+        2,
+        20
+      ],
+      "layer": "база",
+      "formality": 2,
+      "windproof": true,
+      "waterproof": false,
+      "occasions": [],
+      "condition": "есть дефекты",
+      "flaws": [
+        "маловаты",
+        "облезла краска на пуговице"
+      ],
+      "flaw_notes": "Немного малы — надеть можно, но не на каждый день. На пуговице облезла краска.",
+      "added": "2026-11-08",
+      "purchased": {
+        "date": "2024-05",
+        "approx": true,
+        "text": "2–2,5 года назад"
+      },
+      "care": "40°, без отбеливателя, гладить на средней температуре",
+      "notes": "Бирка внутри безымянная (та же, что у оливковых брюк) — вероятно реплика. Плотнее оливковых брюк: на прохладную погоду. Из-за посадки выбирать, когда другие брюки в стирке.",
+      "photos": [
+        "wardrobe/photos/bottom-003-1.jpg",
+        "wardrobe/photos/bottom-003-2.jpg",
+        "wardrobe/photos/bottom-003-3.jpg"
       ],
       "history": [
         {
