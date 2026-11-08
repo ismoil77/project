@@ -15,13 +15,13 @@
 <style>
 :root{
   --bg:#f4f1ea; --card:#fffdf8; --ink:#1b1a17; --muted:#77736a; --line:#e6e1d6; --chip:#ece7dc;
-  --photo:#ebe6dc; --accent:#5b5f2f; --warn:#b5543a; --nav:rgba(255,253,248,.88);
+  --photo:#ebe6dc; --accent:#5b5f2f; --warn:#b5543a; --nav:#fffdf8;
   --shadow:0 1px 2px rgba(0,0,0,.04),0 10px 30px rgba(40,30,10,.07); --r:20px;
   --safe-b:env(safe-area-inset-bottom); --navh:68px;
 }
 @media (prefers-color-scheme:dark){
   :root{--bg:#121210;--card:#1c1b18;--ink:#f1ede4;--muted:#9c978b;--line:#2c2a26;--chip:#26241f;--photo:#24221e;
-        --accent:#b3b878;--warn:#e8906f;--nav:rgba(28,27,24,.88);--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.3)}
+        --accent:#b3b878;--warn:#e8906f;--nav:#1c1b18;--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.3)}
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
@@ -95,6 +95,24 @@ h2{font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--mute
 .tips .ok{background:color-mix(in srgb,var(--accent) 14%,transparent)}
 .tips .no{background:color-mix(in srgb,var(--warn) 12%,transparent)}
 @media(max-width:420px){.tips{grid-template-columns:1fr}}
+.fsbtn{position:absolute;left:12px;bottom:12px;width:40px;height:40px;border-radius:12px;border:none;background:rgba(20,20,18,.7);color:#fff;font-size:20px;cursor:pointer}
+.gal img{cursor:zoom-in}
+#viewer{margin:0;max-width:none;max-height:none;width:100vw;height:100dvh;border-radius:0;background:#000;color:#fff;overflow:hidden;padding:0}
+#viewer[open]{display:flex;flex-direction:column;animation:none}
+#viewer::backdrop{background:#000}
+.vtop{display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top) + 8px) 12px 8px;font-weight:700}
+.vclose{width:44px;height:44px;border-radius:50%;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:26px;cursor:pointer}
+.vtrack{flex:1;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;min-height:0}
+.vtrack::-webkit-scrollbar{display:none}
+.vslide{flex:0 0 100%;height:100%;scroll-snap-align:center;display:flex;align-items:center;justify-content:center;overflow:auto;touch-action:pan-x pan-y pinch-zoom}
+.vslide img{max-width:100%;max-height:100%;object-fit:contain}
+.vslide.zoom img{max-width:none;max-height:none;width:200%}
+.vnav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:64px;border:none;border-radius:12px;background:rgba(255,255,255,.12);color:#fff;font-size:34px;cursor:pointer}
+.vprev{left:8px}.vnext{right:8px}
+.vthumbs{display:flex;gap:8px;overflow-x:auto;padding:10px 12px calc(10px + env(safe-area-inset-bottom));scrollbar-width:none}
+.vthumbs:empty{display:none}
+.vthumbs img{width:56px;height:56px;object-fit:cover;border-radius:10px;opacity:.5;flex:0 0 auto;border:2px solid transparent;cursor:pointer}
+.vthumbs img.on{opacity:1;border-color:#fff}
 .slider{padding:18px}
 .slider .rowx{display:flex;align-items:center;gap:14px}
 .slider output{font-size:34px;font-weight:800;min-width:84px;letter-spacing:-1px}
@@ -116,12 +134,15 @@ input[type=range]{flex:1;accent-color:var(--accent);height:30px}
 .car .track,.gal .track{position:absolute;inset:0}
 .track{display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
 .track::-webkit-scrollbar,.chips::-webkit-scrollbar,.look::-webkit-scrollbar,.thumbs::-webkit-scrollbar{display:none}
-.car img{flex:0 0 100%;width:100%;height:100%;object-fit:contain;padding:10px;scroll-snap-align:center}
+.car .cv{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:10px}
+.car .cv.cover{object-fit:cover;padding:0}
+.pcount{position:absolute;right:8px;bottom:8px;background:rgba(20,20,18,.75);color:#fff;font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px}
+.item{content-visibility:auto;contain-intrinsic-size:auto 320px}
 .car img.cover{object-fit:cover;padding:0}
 .dots{position:absolute;bottom:8px;left:0;right:0;display:flex;justify-content:center;gap:5px;pointer-events:none}
 .dots i{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.7);box-shadow:0 0 0 1px rgba(0,0,0,.15);transition:all .2s}
 .dots i.on{background:#fff;width:16px}
-.badge{position:absolute;left:8px;top:8px;background:rgba(20,20,18,.75);color:#fff;font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px;backdrop-filter:blur(6px)}
+.badge{position:absolute;left:8px;top:8px;background:rgba(20,20,18,.75);color:#fff;font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px}
 .item .b{padding:10px 12px 12px}
 .brand{font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:800}
 .item .n{font-weight:700;font-size:14px;line-height:1.25;margin-top:2px}
@@ -157,7 +178,7 @@ input[type=range]{flex:1;accent-color:var(--accent);height:30px}
 .rules li{margin:12px 0;font-size:14px;line-height:1.45}
 
 /* bottom nav */
-nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--nav);backdrop-filter:saturate(1.6) blur(16px);-webkit-backdrop-filter:saturate(1.6) blur(16px);
+nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--nav);
   border-top:1px solid var(--line);padding-bottom:var(--safe-b)}
 nav .in{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);height:var(--navh)}
 nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-decoration:none;font-size:11px;font-weight:700;color:var(--muted)}
@@ -171,7 +192,7 @@ dialog{border:none;padding:0;margin:auto auto 0;width:100%;max-width:760px;max-h
 @media(min-width:760px){dialog{margin:auto;border-radius:24px;max-height:88vh}}
 dialog[open]{animation:up .28s cubic-bezier(.2,.8,.2,1)}
 @keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
-dialog::backdrop{background:rgba(15,14,12,.5);backdrop-filter:blur(3px)}
+dialog::backdrop{background:rgba(15,14,12,.6)}
 .grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:10px auto 0}
 .gal{position:relative;background:var(--photo);margin-top:10px;aspect-ratio:1/1;max-height:56vh;overflow:hidden}
 .gal img{flex:0 0 100%;width:100%;height:100%;object-fit:contain;padding:16px;scroll-snap-align:center}
@@ -245,6 +266,12 @@ dialog::backdrop{background:rgba(15,14,12,.5);backdrop-filter:blur(3px)}
   <a href="#colors" data-v="colors"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="10" r="1.3" fill="currentColor"/><path d="M12 21a2 2 0 0 1 0-4h1.5a2.5 2.5 0 0 0 0-5"/></svg></span>Цвета</a>
 </div></nav>
 
+<dialog id="viewer">
+  <div class="vtop"><span class="vcnt"></span><button class="vclose" aria-label="Закрыть">×</button></div>
+  <div class="vtrack"></div>
+  <button class="vnav vprev" aria-label="Назад">‹</button><button class="vnav vnext" aria-label="Вперёд">›</button>
+  <div class="vthumbs"></div>
+</dialog>
 <dialog id="dlg"><button class="close" onclick="dlg.close()" aria-label="Закрыть">×</button><div id="dlgBody"></div></dialog>
 
 <script>
@@ -254,6 +281,7 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmtT = t => (Math.round(t) > 0 ? '+' : '') + Math.round(t) + '°';
 const isCut = p => /\.(webp|png)$/i.test(p);
+const thumb = p => p.replace('wardrobe/photos/', 'wardrobe/thumbs/').replace(/\.(jpe?g|png|webp)$/i, '.webp');
 const img = (p, alt = '') => `<img loading="lazy" src="${esc(p)}" alt="${esc(alt)}" class="${isCut(p) ? '' : 'cover'}">`;
 const warmth = n => `<span class="warm" title="Теплота ${n}/5">${[1,2,3,4,5].map(i => `<i class="${i<=n?'f':''}"></i>`).join('')}</span>`;
 let DATA, cat = 'Все', query = '';
@@ -314,8 +342,8 @@ fetch('wardrobe/wardrobe.json', {cache: 'no-store'}).then(r => r.json()).then(d 
 /* ---------- items ---------- */
 function carousel(photos, name){
   if (!photos?.length) return '';
-  return `<div class="track">${photos.map(p => img(p, name)).join('')}</div>` +
-    (photos.length > 1 ? `<div class="dots">${photos.map((_, i) => `<i class="${i?'':'on'}"></i>`).join('')}</div>` : '');
+  return `<img class="cv ${isCut(photos[0]) ? '' : 'cover'}" loading="lazy" decoding="async" src="${esc(thumb(photos[0]))}" alt="${esc(name)}">` +
+    (photos.length > 1 ? `<span class="pcount">▣ ${photos.length}</span>` : '');
 }
 function bindDots(root){
   root.querySelectorAll('.track').forEach(tr => {
@@ -382,8 +410,8 @@ function openItem(id){
       ${rr ? `<div style="color:var(--warn);margin-top:6px">⏳ Пора обновить: ${esc(rr)}</div>` : ''}</dd>`;
   $('#dlgBody').innerHTML = `
     <div class="grab"></div>
-    <div class="gal"><div class="track">${ph.map(p => img(p, i.name)).join('')}</div>${ph.length > 1 ? `<span class="cnt">1 / ${ph.length}</span>` : ''}</div>
-    ${ph.length > 1 ? `<div class="thumbs">${ph.map((p, k) => `<img src="${esc(p)}" data-k="${k}" class="${k?'':'on'}" alt="">`).join('')}</div>` : ''}
+    <div class="gal"><div class="track">${ph.map((p, k) => `<img loading="${k ? 'lazy' : 'eager'}" decoding="async" src="${esc(p)}" data-k="${k}" class="${isCut(p) ? '' : 'cover'}" alt="">`).join('')}</div><button class="fsbtn" aria-label="На весь экран">⤢</button>${ph.length > 1 ? `<span class="cnt">1 / ${ph.length}</span>` : ''}</div>
+    ${ph.length > 1 ? `<div class="thumbs">${ph.map((p, k) => `<img src="${esc(thumb(p))}" loading="lazy" data-k="${k}" class="${k?'':'on'}" alt="">`).join('')}</div>` : ''}
     <div class="sheet">${i.brand ? `<div class="brand">${esc(i.brand)}</div>` : ''}<h3>${esc(i.name)}${i.condition ? `<span class="cond ${hasFlaws(i)||i.condition==='только дом/спорт'?'bad':''}">${esc(i.condition)}</span>` : ''}</h3>
       <dl>${rows.map(r => `<dt>${r[0]}</dt><dd>${esc(r[1])}</dd>`).join('')}${lifeHTML}</dl>${tips}
       <div class="acts">
@@ -397,8 +425,44 @@ function openItem(id){
   body.querySelectorAll('.thumbs img').forEach(t => t.onclick = () => {
     const tr = body.querySelector('.gal .track'); tr.scrollTo({left: tr.clientWidth * +t.dataset.k, behavior: 'smooth'});
   });
+  const cur = () => Math.round(body.querySelector('.gal .track').scrollLeft / body.querySelector('.gal .track').clientWidth);
+  body.querySelectorAll('.gal img').forEach(im => im.onclick = () => openViewer(ph, +im.dataset.k));
+  body.querySelector('.fsbtn').onclick = () => openViewer(ph, cur());
   $('#dlg').showModal();
 }
+
+/* ---------- fullscreen photo viewer ---------- */
+let VW = {ph: [], k: 0};
+function openViewer(ph, k){
+  VW = {ph, k};
+  const v = $('#viewer');
+  v.querySelector('.vtrack').innerHTML = ph.map(p => `<div class="vslide"><img decoding="async" loading="lazy" src="${esc(p)}" alt=""></div>`).join('');
+  v.querySelector('.vthumbs').innerHTML = ph.length > 1 ? ph.map((p, j) => `<img src="${esc(thumb(p))}" data-k="${j}" alt="">`).join('') : '';
+  v.showModal();
+  requestAnimationFrame(() => goViewer(k, false));
+}
+function goViewer(k, smooth = true){
+  const v = $('#viewer'), tr = v.querySelector('.vtrack');
+  VW.k = Math.max(0, Math.min(VW.ph.length - 1, k));
+  tr.scrollTo({left: tr.clientWidth * VW.k, behavior: smooth ? 'smooth' : 'instant'});
+  syncViewer();
+}
+function syncViewer(){
+  const v = $('#viewer');
+  v.querySelector('.vcnt').textContent = `${VW.k + 1} / ${VW.ph.length}`;
+  v.querySelectorAll('.vthumbs img').forEach((t, j) => t.classList.toggle('on', j === VW.k));
+  v.querySelector('.vprev').hidden = VW.k === 0; v.querySelector('.vnext').hidden = VW.k >= VW.ph.length - 1;
+}
+(() => {
+  const v = $('#viewer'), tr = v.querySelector('.vtrack');
+  let t; tr.addEventListener('scroll', () => { clearTimeout(t); t = setTimeout(() => { VW.k = Math.round(tr.scrollLeft / tr.clientWidth); syncViewer(); }, 60); }, {passive: true});
+  v.querySelector('.vprev').onclick = () => goViewer(VW.k - 1);
+  v.querySelector('.vnext').onclick = () => goViewer(VW.k + 1);
+  v.querySelector('.vclose').onclick = () => v.close();
+  v.querySelector('.vthumbs').onclick = e => { const im = e.target.closest('img'); if (im) goViewer(+im.dataset.k); };
+  tr.addEventListener('dblclick', e => e.target.closest('.vslide')?.classList.toggle('zoom'));
+  addEventListener('keydown', e => { if (!v.open) return; if (e.key === 'ArrowLeft') goViewer(VW.k - 1); if (e.key === 'ArrowRight') goViewer(VW.k + 1); });
+})();
 $('#dlg').addEventListener('click', e => { if (e.target.id === 'dlg') dlg.close(); });
 
 function renderOcc(){
@@ -410,7 +474,7 @@ $('#occ').onclick = e => { const b = e.target.closest('button'); if (!b) return;
 function renderWish(){
   const rn = active().filter(i => renewReason(i));
   $('#renewBox').innerHTML = rn.length ? `<h2>Пора обновить</h2><div class="card renewlist">${rn.map(i => `
-    <div class="row" data-id="${esc(i.id)}"><div class="im">${i.photos?.[0] ? img(i.photos[0]) : ''}</div>
+    <div class="row" data-id="${esc(i.id)}"><div class="im">${i.photos?.[0] ? img(thumb(i.photos[0])) : ''}</div>
       <div><b>${esc(i.name)}</b><span>${esc(renewReason(i))}</span></div></div>`).join('')}</div>` : '';
   $('#renewBox').onclick = e => { const r = e.target.closest('.row'); if (r) openItem(r.dataset.id); };
   $('#wish').innerHTML = DATA.wishlist.map(w => `
@@ -497,7 +561,7 @@ function exclHTML(o){
   return parts.length ? `<div class="excl">${parts.join('<br>')}</div>` : '';
 }
 function lookHTML(o){
-  return o.pick.map(i => `<div class="it" data-id="${esc(i.id)}"><div class="im">${i.photos?.[0] ? img(i.photos[0], i.name) : ''}</div>${esc(i.name)}</div>`).join('') +
+  return o.pick.map(i => `<div class="it" data-id="${esc(i.id)}"><div class="im">${i.photos?.[0] ? img(thumb(i.photos[0]), i.name) : ''}</div>${esc(i.name)}</div>`).join('') +
     o.missing.map(m => `<a class="it miss" href="#wish" style="text-decoration:none"><div class="im">?</div>${esc(m)}</a>`).join('');
 }
 document.addEventListener('click', e => { const it = e.target.closest('.look .it[data-id]'); if (it) openItem(it.dataset.id); });

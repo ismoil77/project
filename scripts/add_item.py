@@ -179,6 +179,20 @@ def save(img, path: Path) -> Path:
 
 
 
+THUMBS = ROOT / "wardrobe" / "thumbs"
+
+
+def make_thumb(path: Path):
+    """Small WebP preview for the grid (the site loads full photos only in the gallery)."""
+    from PIL import Image
+    THUMBS.mkdir(parents=True, exist_ok=True)
+    im = Image.open(path)
+    im.thumbnail((480, 480))
+    if im.mode != "RGBA":
+        im = im.convert("RGB")
+    im.save(THUMBS / (path.stem + ".webp"), "WEBP", quality=72, method=6)
+
+
 # ---------------------------------------------------------------- item updates
 def log(item: dict, event: str, note: str = ""):
     item.setdefault("history", []).append({k: v for k, v in
@@ -312,6 +326,7 @@ def add(data, f, token) -> str:
         remove = mode == "На всех фото" or (mode.startswith("Только") and start + n == 0)
         out = cutout(img) if remove else img
         saved = save(out, PHOTOS / f"{item['id']}-{start + n + 1}")
+        make_thumb(saved)
         item["photos"].append(f"wardrobe/photos/{saved.name}")
         if start + n == 0:
             auto = colors.analyze(out)
