@@ -89,6 +89,12 @@ h2{font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--mute
 .renewlist .row img{width:100%;height:100%;object-fit:cover}
 .renewlist .row b{display:block;font-size:14px}
 .renewlist .row span{font-size:12.5px;color:var(--warn);font-weight:700}
+.tips{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.tips>div{border-radius:14px;padding:12px;font-size:13px;line-height:1.4}
+.tips ul{margin:6px 0 0;padding-left:16px}.tips li{margin:3px 0}
+.tips .ok{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.tips .no{background:color-mix(in srgb,var(--warn) 12%,transparent)}
+@media(max-width:420px){.tips{grid-template-columns:1fr}}
 .slider{padding:18px}
 .slider .rowx{display:flex;align-items:center;gap:14px}
 .slider output{font-size:34px;font-weight:800;min-width:84px;letter-spacing:-1px}
@@ -368,8 +374,9 @@ function openItem(id){
     ['Куплена', i.purchased ? (i.purchased.approx ? '≈ ' : '') + (i.purchased.text || fmtDate(i.purchased.date)) : 'не указано'],
     ['Добавлена', fmtDate(i.added)], ['Цена', i.price],
     ['В архиве', i.archived ? `${fmtDate(i.archived.date)} · ${i.archived.reason}${i.archived.comment ? ' · ' + i.archived.comment : ''}` : ''],
-    ['Уход', i.care], ['Заметки', i.notes], ['ID', i.id]].filter(r => r[1]);
+    ['Логотип', i.logo], ['Уход', i.care], ['Заметки', i.notes], ['ID', i.id]].filter(r => r[1]);
   const age = ageYears(i), life = lifespan(i), rr = renewReason(i);
+  const tips = i.wear_tips ? `<div class="tips">${i.wear_tips.do?.length ? `<div class="ok"><b>✓ Можно</b><ul>${i.wear_tips.do.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}${i.wear_tips.dont?.length ? `<div class="no"><b>✕ Нельзя</b><ul>${i.wear_tips.dont.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}</div>` : '';
   const lifeHTML = age === null ? '' : `<dt>Возраст</dt><dd>${esc(yearsWord(age))}${i.purchased?.date ? '' : ' <span style="color:var(--muted);font-weight:500">(с даты добавления)</span>'} из ~${esc(yearsWord(life))}
       <div class="life"><i class="${age >= life ? 'old' : ''}" style="width:${Math.min(100, age / life * 100)}%"></i></div>
       ${rr ? `<div style="color:var(--warn);margin-top:6px">⏳ Пора обновить: ${esc(rr)}</div>` : ''}</dd>`;
@@ -378,7 +385,7 @@ function openItem(id){
     <div class="gal"><div class="track">${ph.map(p => img(p, i.name)).join('')}</div>${ph.length > 1 ? `<span class="cnt">1 / ${ph.length}</span>` : ''}</div>
     ${ph.length > 1 ? `<div class="thumbs">${ph.map((p, k) => `<img src="${esc(p)}" data-k="${k}" class="${k?'':'on'}" alt="">`).join('')}</div>` : ''}
     <div class="sheet">${i.brand ? `<div class="brand">${esc(i.brand)}</div>` : ''}<h3>${esc(i.name)}${i.condition ? `<span class="cond ${hasFlaws(i)||i.condition==='только дом/спорт'?'bad':''}">${esc(i.condition)}</span>` : ''}</h3>
-      <dl>${rows.map(r => `<dt>${r[0]}</dt><dd>${esc(r[1])}</dd>`).join('')}${lifeHTML}</dl>
+      <dl>${rows.map(r => `<dt>${r[0]}</dt><dd>${esc(r[1])}</dd>`).join('')}${lifeHTML}</dl>${tips}
       <div class="acts">
         <a class="btn pri" target="_blank" rel="noopener" href="${ISSUE('&existing=' + encodeURIComponent(i.id) + '&title=' + encodeURIComponent('Фото: ' + i.name))}">+ Фото</a>
         <a class="btn sec" target="_blank" rel="noopener" href="${ISSUE('&existing=' + encodeURIComponent(i.id) + '&title=' + encodeURIComponent('Изменить: ' + i.name))}">✎ Изменить</a>

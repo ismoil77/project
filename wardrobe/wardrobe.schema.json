@@ -333,6 +333,28 @@
             "boolean"
           ],
           "description": "Просвечивает ли ткань: нет / немного на свету / сильно"
+        },
+        "logo": {
+          "type": "string",
+          "description": "Логотип/надписи: где и какие; «Нет» — без логотипа"
+        },
+        "wear_tips": {
+          "type": "object",
+          "description": "Короткие правила: что можно и чего нельзя",
+          "properties": {
+            "do": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "dont": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
         }
       }
     }
