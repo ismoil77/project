@@ -455,7 +455,10 @@ function outfit(t, rain){
   // 2. outerwear
   if (needOuter){
     const o = best(rain ? [...outer].sort((a, b) => (b.waterproof === true) - (a.waterproof === true)).slice(0, Math.max(1, outer.filter(x => x.waterproof === true).length)) : outer, t, pick);
-    if (o) pick.push(o); else { missing.push('Куртка'); warns.push('Нужна куртка — её пока нет, она в списке покупок.'); }
+    if (o) {
+      pick.push(o);
+      if (t < o.temp[0] - 3) { missing.push('Тёплая куртка'); warns.push(`«${o.name}» тонкая для такого холода — нужна тёплая куртка (она в списке покупок).`); }
+    } else { missing.push('Куртка'); warns.push('Нужна куртка — её пока нет, она в списке покупок.'); }
   }
   // 3. bottom
   const bottom = best(pool.filter(i => i.category === 'Низ' && t <= i.temp[1] + 3 && t >= i.temp[0] - 8), t, pick);
