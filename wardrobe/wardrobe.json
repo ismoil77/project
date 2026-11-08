@@ -1,4 +1,19 @@
 {
+  "schema_version": 2,
+  "lifespan_years": {
+    "футболка": 2,
+    "рубашка": 3,
+    "свитер": 3.5,
+    "спортивная кофта": 3,
+    "спортивные штаны": 3,
+    "брюки": 3,
+    "джинсы": 4,
+    "Верх": 3,
+    "Низ": 3,
+    "Верхняя одежда": 4.5,
+    "Обувь": 2,
+    "Аксессуары": 4
+  },
   "owner": {
     "name": "Исмоил",
     "sizes": {
@@ -71,6 +86,7 @@
   "items": [
     {
       "id": "top-001",
+      "status": "active",
       "name": "Футболка белая с принтом",
       "category": "Верх",
       "type": "футболка",
@@ -80,28 +96,41 @@
       },
       "material": "хлопок (предположительно)",
       "warmth": 1,
-      "layer": "база",
+      "season": [
+        "лето"
+      ],
+      "thickness": "тонкая",
       "temp": [
         20,
         40
       ],
+      "layer": "база",
       "windproof": false,
       "waterproof": false,
       "style": "casual",
-      "photos": [
-        "wardrobe/photos/top-001.jpg"
-      ],
-      "notes": "Принт на груди. Под свитер и куртку как базовый слой.",
-      "condition": "хорошее",
-      "flaws": [],
       "occasions": [
         "Работа",
         "Повседневно",
         "Дом"
+      ],
+      "condition": "хорошее",
+      "flaws": [],
+      "added": "2026-11-08",
+      "purchased": null,
+      "notes": "Принт на груди. Под свитер и куртку как базовый слой.",
+      "photos": [
+        "wardrobe/photos/top-001.jpg"
+      ],
+      "history": [
+        {
+          "date": "2026-11-08",
+          "event": "added"
+        }
       ]
     },
     {
       "id": "top-002",
+      "status": "active",
       "name": "Свитер тонкой вязки",
       "brand": "LC Waikiki",
       "category": "Верх",
@@ -113,29 +142,42 @@
       "material": "100% хлопок",
       "size": "52",
       "warmth": 2,
-      "layer": "средний",
+      "season": [
+        "межсезонье"
+      ],
+      "thickness": "тонкая",
       "temp": [
         13,
         20
       ],
+      "layer": "средний",
       "windproof": false,
       "waterproof": false,
       "style": "smart-casual",
-      "care": "30°, стирать наизнанку, сушить лёжа, без отбеливателя",
-      "photos": [
-        "wardrobe/photos/top-002.jpg"
-      ],
-      "notes": "Размер 52 — свободная посадка. Мокрый хлопок холодит — в дождь только под курткой.",
-      "condition": "хорошее",
-      "flaws": [],
       "occasions": [
         "Работа",
         "Повседневно",
         "Праздник / выход"
+      ],
+      "condition": "хорошее",
+      "flaws": [],
+      "added": "2026-11-08",
+      "purchased": null,
+      "care": "30°, стирать наизнанку, сушить лёжа, без отбеливателя",
+      "notes": "Размер 52 — свободная посадка. Мокрый хлопок холодит — в дождь только под курткой.",
+      "photos": [
+        "wardrobe/photos/top-002.jpg"
+      ],
+      "history": [
+        {
+          "date": "2026-11-08",
+          "event": "added"
+        }
       ]
     },
     {
       "id": "set-001",
+      "status": "active",
       "name": "Спортивная кофта",
       "brand": "Rabex",
       "article": "AJAW63",
@@ -147,33 +189,46 @@
       },
       "material": "78% нейлон, 22% спандекс; основа 89% полиэстер, 11% спандекс; двухслойная",
       "warmth": 2,
-      "layer": "средний / верхний",
+      "season": [
+        "межсезонье"
+      ],
+      "thickness": "тонкая",
       "temp": [
         12,
         22
       ],
+      "layer": "средний / верхний",
       "windproof": true,
       "waterproof": "морось",
       "style": "sport",
-      "pairs_with": [
-        "set-002"
-      ],
-      "care": "30°, без сушилки и отбеливателя, гладить на минимуме",
-      "photos": [
-        "wardrobe/photos/set-001.jpg",
-        "wardrobe/photos/set-001-label.jpg"
-      ],
-      "notes": "Комплект со штанами. Свитер + эта кофта — до ~+10° без дождя.",
-      "condition": "хорошее",
-      "flaws": [],
       "occasions": [
         "Работа",
         "Повседневно",
         "Спорт"
+      ],
+      "condition": "хорошее",
+      "flaws": [],
+      "added": "2026-11-08",
+      "purchased": null,
+      "care": "30°, без сушилки и отбеливателя, гладить на минимуме",
+      "notes": "Комплект со штанами. Свитер + эта кофта — до ~+10° без дождя.",
+      "pairs_with": [
+        "set-002"
+      ],
+      "photos": [
+        "wardrobe/photos/set-001.jpg",
+        "wardrobe/photos/set-001-label.jpg"
+      ],
+      "history": [
+        {
+          "date": "2026-11-08",
+          "event": "added"
+        }
       ]
     },
     {
       "id": "set-002",
+      "status": "active",
       "name": "Спортивные штаны",
       "brand": "Rabex",
       "article": "AJAW63",
@@ -185,29 +240,41 @@
       },
       "material": "78% нейлон, 22% спандекс; основа 89% полиэстер, 11% спандекс",
       "warmth": 2,
-      "layer": "база",
+      "season": [
+        "межсезонье"
+      ],
+      "thickness": "тонкая",
       "temp": [
         8,
         25
       ],
+      "layer": "база",
       "windproof": true,
       "waterproof": "морось",
       "style": "sport",
-      "pairs_with": [
-        "set-001"
-      ],
-      "care": "30°, без сушилки и отбеливателя",
-      "photos": [
-        "wardrobe/photos/set-001.jpg",
-        "wardrobe/photos/set-002-2.webp"
-      ],
-      "notes": "Комплект с кофтой Rabex.",
-      "condition": "хорошее",
-      "flaws": [],
       "occasions": [
         "Работа",
         "Повседневно",
         "Спорт"
+      ],
+      "condition": "хорошее",
+      "flaws": [],
+      "added": "2026-11-08",
+      "purchased": null,
+      "care": "30°, без сушилки и отбеливателя",
+      "notes": "Комплект с кофтой Rabex.",
+      "pairs_with": [
+        "set-001"
+      ],
+      "photos": [
+        "wardrobe/photos/set-001.jpg",
+        "wardrobe/photos/set-002-2.webp"
+      ],
+      "history": [
+        {
+          "date": "2026-11-08",
+          "event": "added"
+        }
       ]
     }
   ],

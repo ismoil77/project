@@ -1,11 +1,18 @@
-"""Add a wardrobe item (or extra photos) from a GitHub issue form.
+"""Wardrobe bot: add/update/archive items from GitHub issue forms.
 
-Used by .github/workflows/add-item.yml. Reads the issue body from $ISSUE_BODY,
-downloads attached photos, removes the background with rembg, saves WebP files
-to wardrobe/photos/ and updates wardrobe/wardrobe.json.
+Used by .github/workflows/add-item.yml. Reads the issue body from $ISSUE_BODY
+and the form type from $FORM ("add" or "archive").
 
-Local use (cut out one photo):  python scripts/add_item.py cutout in.jpg out.webp
+add     — new item or update of an existing one (photos, condition, flaws, purchase date…).
+          Photos are downloaded, background removed with rembg, saved as WebP.
+archive — move an item to the archive or bring it back.
+
+Local helpers:
+  python scripts/add_item.py cutout in.jpg out.webp     # remove background from one photo
+  python scripts/add_item.py purchased "осень 2024"     # test the purchase-date parser
+Data format: wardrobe/SCHEMA.md
 """
+import datetime as dt
 import json
 import os
 import re
@@ -13,23 +20,100 @@ import sys
 from io import BytesIO
 from pathlib import Path
 
-import requests
-from PIL import Image, ImageOps
-
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "wardrobe" / "wardrobe.json"
 PHOTOS = ROOT / "wardrobe" / "photos"
 MAX_SIDE = 1200
+TODAY = dt.date.today()
 
-WARMTH_TEMP = {1: [20, 40], 2: [13, 22], 3: [8, 18], 4: [-2, 12], 5: [-20, 5]}
+# "Сезон и плотность" form option prefix -> warmth, seasons, thickness, comfortable feels-like range
+SEASON_OPTIONS = {
+    "Лето":                 (1, ["лето"], "тонкая", [20, 40]),
+    "Межсезонье — лёгкая":  (2, ["межсезонье"], "тонкая", [13, 22]),
+    "Межсезонье — средняя": (3, ["межсезонье", "зима"], "средняя", [8, 18]),
+    "Межсезонье — тёплая":  (4, ["межсезонье", "зима"], "плотная", [-2, 12]),
+    "Зима":                 (5, ["зима"], "плотная", [-20, 5]),
+}
+PREFIX = {"Верх": "top", "Низ": "bottom", "Верхняя одежда": "outer", "Обувь": "shoes", "Аксессуары": "acc"}
+CONDITION = {"Отличное": "отличное", "Хорошее": "хорошее", "Есть дефекты": "есть дефекты", "Только для дома": "только дом/спорт"}
 COLOR_HEX = {"белый": "#f5f5f2", "чёрный": "#151515", "черный": "#151515", "серый": "#8d9096", "графит": "#3a3d42",
              "тёмно-синий": "#1f2a44", "темно-синий": "#1f2a44", "синий": "#2c4f8a", "голубой": "#8fb3d9",
              "бежевый": "#d8c3a5", "экрю": "#efe6d2", "молочный": "#f1ead9", "коричневый": "#6b4a32",
              "шоколадный": "#4a2c1d", "хаки": "#8a7f55", "оливковый": "#5b5f2f", "зелёный": "#2f6b3f",
              "зеленый": "#2f6b3f", "бордовый": "#6d1f2a", "красный": "#b3261e", "терракотовый": "#b5543a",
              "розовый": "#e7a6b8", "жёлтый": "#e2c044", "желтый": "#e2c044", "фиолетовый": "#5e3c8c", "деним": "#3b5a7d"}
-PREFIX = {"Верх": "top", "Низ": "bottom", "Верхняя одежда": "outer", "Обувь": "shoes", "Аксессуары": "acc"}
+MONTHS = ["январ", "феврал", "март", "апрел", "ма[йяе]\\b", "июн", "июл", "август", "сентябр", "октябр", "ноябр", "декабр"]
+SEASON_MONTH = {"зим": 1, "весн": 4, "лет": 7, "осен": 10}
 
+
+# ---------------------------------------------------------------- parsing
+def parse_form(body: str) -> dict:
+    """GitHub issue forms render as '### Label\\n\\nvalue' blocks."""
+    fields = {}
+    for block in re.split(r"^### ", body, flags=re.M)[1:]:
+        label, _, value = block.partition("\n")
+        value = value.strip()
+        fields[label.strip()] = "" if value == "_No response_" else value
+    return fields
+
+
+def get(f: dict, prefix: str) -> str:
+    """Field value by label prefix (labels may carry hints in brackets)."""
+    for k, v in f.items():
+        if k.startswith(prefix):
+            return v.strip()
+    return ""
+
+
+def checked(value: str) -> list[str]:
+    return [m.strip() for m in re.findall(r"^- \[[xX]\] (.+)$", value or "", flags=re.M)]
+
+
+def image_urls(text: str) -> list[str]:
+    urls = re.findall(r"!\[[^\]]*\]\((https://[^)\s]+)\)", text)
+    urls += re.findall(r'<img[^>]+src="(https://[^"]+)"', text)
+    return list(dict.fromkeys(urls))
+
+
+def parse_purchased(text: str, today: dt.date = TODAY) -> dict | None:
+    """'осень 2024', 'март 2025', '2023', 'год назад', '2 года назад', 'полгода назад', 'недавно' -> {date: 'YYYY-MM', approx, text}."""
+    t = text.strip().lower()
+    if not t or t in {"не знаю", "не помню", "-"}:
+        return None
+    exact = re.fullmatch(r"(\d{1,2})[./](\d{4})", t) or re.fullmatch(r"(\d{4})-(\d{1,2})", t)
+    if exact:
+        a, b = exact.groups()
+        y, m = (int(b), int(a)) if len(a) <= 2 else (int(a), int(b))
+        return {"date": f"{y:04d}-{m:02d}", "approx": False, "text": text.strip()}
+
+    def back(months: int):
+        total = today.year * 12 + today.month - 1 - months
+        return {"date": f"{total // 12:04d}-{total % 12 + 1:02d}", "approx": True, "text": text.strip()}
+
+    if "недавно" in t:
+        return back(0)
+    if "полгода" in t:
+        return back(6)
+    m = re.search(r"(\d+(?:[.,]\d)?)?\s*(год|года|лет)\s+назад", t)
+    if m:
+        return back(round(float((m.group(1) or "1").replace(",", ".")) * 12))
+    m = re.search(r"(\d+)?\s*месяц\w*\s+назад", t)
+    if m:
+        return back(int(m.group(1) or 1))
+    year = re.search(r"(20\d{2}|19\d{2})", t)
+    month = next((i + 1 for i, name in enumerate(MONTHS) if re.search(r"\b" + name, t)), None)
+    season = next((mm for key, mm in SEASON_MONTH.items() if key in t), None)
+    if year:
+        mon = month or season or 6
+        return {"date": f"{int(year.group(1)):04d}-{mon:02d}", "approx": not month, "text": text.strip()}
+    if month or season:  # "в марте", "осенью" without a year -> most recent one in the past
+        mon = month or season
+        y = today.year if mon <= today.month else today.year - 1
+        return {"date": f"{y:04d}-{mon:02d}", "approx": True, "text": text.strip()}
+    return {"date": None, "approx": True, "text": text.strip()}
+
+
+# ---------------------------------------------------------------- images
 _session = None
 
 
@@ -41,8 +125,8 @@ def rembg_session():
     return _session
 
 
-def cutout(img: Image.Image) -> Image.Image:
-    """Remove background and crop to the object with a small margin."""
+def cutout(img):
+    from PIL import Image
     from rembg import remove
     out = remove(img, session=rembg_session(), post_process_mask=True)
     bbox = out.getchannel("A").point(lambda a: 255 if a > 20 else 0).getbbox()
@@ -54,20 +138,19 @@ def cutout(img: Image.Image) -> Image.Image:
     return canvas
 
 
-def load(src) -> Image.Image:
-    img = Image.open(src)
-    img = ImageOps.exif_transpose(img).convert("RGB")
+def load(src):
+    from PIL import Image, ImageOps
+    img = ImageOps.exif_transpose(Image.open(src)).convert("RGB")
     img.thumbnail((2000, 2000))
     return img
 
 
-def save(img: Image.Image, path: Path):
+def save(img, path: Path):
     img.thumbnail((MAX_SIDE, MAX_SIDE))
     img.save(path, "WEBP", quality=82, method=6)
 
 
-def dominant_hex(img: Image.Image) -> str:
-    """Average colour of the visible (non-transparent) pixels."""
+def dominant_hex(img) -> str:
     small = img.convert("RGBA").copy()
     small.thumbnail((80, 80))
     px = [p for p in small.getdata() if p[3] > 200]
@@ -77,52 +160,10 @@ def dominant_hex(img: Image.Image) -> str:
     return f"#{r:02x}{g:02x}{b:02x}"
 
 
-def parse_form(body: str) -> dict:
-    """GitHub issue forms render as '### Label\\n\\nvalue' blocks."""
-    fields = {}
-    for block in re.split(r"^### ", body, flags=re.M)[1:]:
-        label, _, value = block.partition("\n")
-        value = value.strip()
-        fields[label.strip()] = "" if value == "_No response_" else value
-    return fields
-
-
-def image_urls(text: str) -> list[str]:
-    urls = re.findall(r"!\[[^\]]*\]\((https://[^)\s]+)\)", text)
-    urls += re.findall(r'<img[^>]+src="(https://[^"]+)"', text)
-    seen, out = set(), []
-    for u in urls:
-        if u not in seen:
-            seen.add(u)
-            out.append(u)
-    return out
-
-
-def checked(value: str) -> list[str]:
-    """Checked options of an issue-form checkbox block ('- [x] Label')."""
-    return [m.strip() for m in re.findall(r"^- \[[xX]\] (.+)$", value or "", flags=re.M)]
-
-
-CONDITION = {"Отличное": "отличное", "Хорошее": "хорошее", "Есть дефекты": "есть дефекты", "Только для дома": "только дом/спорт"}
-
-
-def apply_condition(item: dict, f: dict, is_new: bool):
-    """Condition, flaws and where-to-wear; for existing items only fields the user filled change."""
-    cond = f.get("Состояние", "")
-    for key, val in CONDITION.items():
-        if cond.startswith(key):
-            item["condition"] = val
-    flaws = [x.lower() for x in checked(f.get("Дефекты", ""))]
-    if flaws:
-        item["flaws"] = sorted(set(item.get("flaws", [])) | set(flaws))
-    notes = f.get("Подробнее о дефектах", "").strip()
-    if notes:
-        item["flaw_notes"] = notes
-    occ = checked(f.get("Где можно носить", ""))
-    if occ:
-        item["occasions"] = occ
-    elif is_new and item.get("condition") == "только дом/спорт":
-        item["occasions"] = ["Дом", "Спорт"]
+# ---------------------------------------------------------------- item updates
+def log(item: dict, event: str, note: str = ""):
+    item.setdefault("history", []).append({k: v for k, v in
+                                           {"date": TODAY.isoformat(), "event": event, "note": note}.items() if v})
 
 
 def next_id(items, prefix):
@@ -130,50 +171,104 @@ def next_id(items, prefix):
     return f"{prefix}-{max(nums, default=0) + 1:03d}"
 
 
-def main():
-    body = os.environ["ISSUE_BODY"]
-    token = os.environ.get("GITHUB_TOKEN", "")
-    f = parse_form(body)
-    data = json.loads(DATA.read_text(encoding="utf-8"))
-    items = data["items"]
+def apply_fields(item: dict, f: dict, is_new: bool) -> list[str]:
+    """Copy filled form fields onto the item. Returns human-readable list of what changed."""
+    changed = []
 
-    urls = image_urls(f.get("Фото", ""))
-    existing = f.get("Добавить фото к существующей вещи (id)", "").strip()
+    def put(key, value, label):
+        if value not in (None, "", []) and item.get(key) != value:
+            item[key] = value
+            changed.append(label)
+
+    put("name", get(f, "Название"), "название")
+    put("category", get(f, "Категория"), "категория")
+    put("brand", get(f, "Бренд"), "бренд")
+    put("material", get(f, "Состав"), "состав")
+    put("size", get(f, "Размер"), "размер")
+    put("link", get(f, "Ссылка"), "ссылка")
+    put("price", get(f, "Цена"), "цена")
+    put("notes", get(f, "Заметки"), "заметки")
+    color = get(f, "Цвет")
+    if color:
+        item["color"] = {"name": color, "hex": COLOR_HEX.get(color.lower(), (item.get("color") or {}).get("hex"))}
+        changed.append("цвет")
+
+    season = get(f, "Сезон и плотность")
+    for key, (warmth, seasons, thickness, temp) in SEASON_OPTIONS.items():
+        if season.startswith(key):
+            item.update(warmth=warmth, season=seasons, thickness=thickness, temp=temp)
+            changed.append("сезон")
+            break
+
+    purchased = parse_purchased(get(f, "Когда купил"))
+    if purchased:
+        item["purchased"] = purchased
+        changed.append("дата покупки")
+
+    prot = get(f, "Защита от погоды")
+    if prot:
+        item["windproof"] = "[x] Держит ветер" in prot
+        item["waterproof"] = "[x] Непромокаемая" in prot
+
+    cond = get(f, "Состояние")
+    for key, val in CONDITION.items():
+        if cond.startswith(key) and item.get("condition") != val:
+            item["condition"] = val
+            changed.append("состояние")
+    flaws = [x.lower() for x in checked(get(f, "Дефекты"))]
+    if flaws:
+        item["flaws"] = sorted(set(item.get("flaws", [])) | set(flaws))
+        changed.append("дефекты")
+    put("flaw_notes", get(f, "Подробнее о дефектах"), "описание дефекта")
+    occ = checked(get(f, "Где можно носить"))
+    if occ:
+        item["occasions"] = occ
+        changed.append("где носить")
+    elif is_new and item.get("condition") == "только дом/спорт":
+        item["occasions"] = ["Дом", "Спорт"]
+
+    if is_new:
+        cat = item.get("category", "Верх")
+        item["layer"] = {"Верхняя одежда": "верхний", "Низ": "база", "Обувь": "обувь", "Аксессуары": "аксессуар"}.get(
+            cat, "база" if item.get("warmth", 2) <= 1 else "средний")
+    return changed
+
+
+def new_item(items, f) -> dict:
+    category = get(f, "Категория") or "Верх"
+    item = {
+        "id": next_id(items, PREFIX.get(category, "item")),
+        "status": "active",
+        "name": get(f, "Название") or "Новая вещь",
+        "category": category,
+        "color": {"name": "", "hex": None},
+        "warmth": 2, "season": ["межсезонье"], "thickness": "тонкая", "temp": [13, 22],
+        "windproof": False, "waterproof": False,
+        "condition": "хорошее", "flaws": [], "occasions": [],
+        "added": TODAY.isoformat(), "purchased": None,
+        "photos": [],
+    }
+    items.append(item)
+    return item
+
+
+def add(data, f, token) -> str:
+    import requests
+    items = data["items"]
+    urls = image_urls(get(f, "Фото"))
+    existing = get(f, "Добавить фото к существующей вещи") or get(f, "ID существующей вещи")
     if existing:
         item = next((i for i in items if i["id"] == existing), None)
         if not item:
             raise SystemExit(f"Вещь с id «{existing}» не найдена.")
-        apply_condition(item, f, is_new=False)
+        is_new = False
     else:
         if not urls:
             raise SystemExit("Не нашёл ни одного фото. Прикрепи фото в поле «Фото».")
-        category = f.get("Категория") or "Верх"
-        warmth = int((f.get("Насколько тёплая") or "2")[0])
-        protection = f.get("Защита от погоды", "")
-        layer = {"Верхняя одежда": "верхний", "Низ": "база", "Обувь": "обувь", "Аксессуары": "аксессуар"}.get(
-            category, "база" if warmth <= 1 else "средний")
-        item = {
-            "id": next_id(items, PREFIX.get(category, "item")),
-            "name": f.get("Название") or "Новая вещь",
-            "brand": f.get("Бренд") or None,
-            "category": category,
-            "color": {"name": f.get("Цвет") or "", "hex": COLOR_HEX.get((f.get("Цвет") or "").strip().lower())},
-            "material": f.get("Состав") or None,
-            "size": f.get("Размер") or None,
-            "warmth": warmth,
-            "layer": layer,
-            "temp": WARMTH_TEMP[warmth],
-            "windproof": "[x] Держит ветер" in protection,
-            "waterproof": "[x] Непромокаемая" in protection,
-            "link": f.get("Ссылка на товар (WB и т.п.)") or None,
-            "notes": f.get("Заметки") or None,
-            "photos": [],
-        }
-        item = {k: v for k, v in item.items() if v is not None}
-        apply_condition(item, f, is_new=True)
-        items.append(item)
+        item, is_new = new_item(items, f), True
+    changed = apply_fields(item, f, is_new)
 
-    mode = f.get("Удалить фон", "На всех фото")
+    mode = get(f, "Удалить фон") or "На всех фото"
     PHOTOS.mkdir(parents=True, exist_ok=True)
     start = len(item["photos"])
     for n, url in enumerate(urls):
@@ -186,19 +281,50 @@ def main():
         name = f"{item['id']}-{start + n + 1}.webp"
         save(out, PHOTOS / name)
         item["photos"].append(f"wardrobe/photos/{name}")
-        if start + n == 0 and not item.get("color", {}).get("hex"):
-            item.setdefault("color", {})["hex"] = dominant_hex(out)
+        if start + n == 0 and not item["color"].get("hex"):
+            item["color"]["hex"] = dominant_hex(out)
 
+    if is_new:
+        log(item, "added")
+    else:
+        parts = ([f"фото +{len(urls)}"] if urls else []) + changed
+        log(item, "updated", ", ".join(parts))
+    lines = [f"Готово: «{item['name']}» (`{item['id']}`) — {'добавлена' if is_new else 'обновлена'}."]
+    if urls:
+        lines.append(f"Фото: +{len(urls)}.")
+    if changed and not is_new:
+        lines.append("Изменено: " + ", ".join(changed) + ".")
+    if item.get("purchased"):
+        lines.append(f"Куплена: {item['purchased']['text']}.")
+    return "\n".join(lines)
+
+
+def archive(data, f) -> str:
+    item_id = get(f, "ID вещи")
+    item = next((i for i in data["items"] if i["id"] == item_id), None)
+    if not item:
+        raise SystemExit(f"Вещь с id «{item_id}» не найдена.")
+    action = get(f, "Что сделать")
+    if action.startswith("Вернуть"):
+        item["status"] = "active"
+        item.pop("archived", None)
+        log(item, "restored")
+        return f"«{item['name']}» снова в гардеробе."
+    reason = get(f, "Причина") or "другое"
+    comment = get(f, "Комментарий")
+    item["status"] = "archived"
+    item["archived"] = {k: v for k, v in {"date": TODAY.isoformat(), "reason": reason, "comment": comment}.items() if v}
+    log(item, "archived", reason)
+    return f"«{item['name']}» убрана в архив ({reason.lower()}). Она больше не попадёт в образы, но останется в разделе «Архив»."
+
+
+def main():
+    f = parse_form(os.environ["ISSUE_BODY"])
+    data = json.loads(DATA.read_text(encoding="utf-8"))
+    form = os.environ.get("FORM", "add")
+    msg = archive(data, f) if form == "archive" else add(data, f, os.environ.get("GITHUB_TOKEN", ""))
     DATA.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    extra = ""
-    if item.get("condition"):
-        extra += f"\nСостояние: {item['condition']}."
-    if item.get("flaws"):
-        extra += f"\nДефекты: {', '.join(item['flaws'])}."
-    if item.get("occasions"):
-        extra += f"\nГде носить: {', '.join(item['occasions'])}."
-    msg = (f"Готово: «{item['name']}» (`{item['id']}`), фото добавлено: {len(urls)}.{extra}\n\n"
-           f"Смотри на сайте через 1–2 минуты: https://ismoil77.github.io/project/#items")
+    msg += "\n\nСайт обновится через 1–2 минуты: https://ismoil77.github.io/project/#items"
     Path(os.environ.get("RESULT_FILE", "result.md")).write_text(msg, encoding="utf-8")
     print(msg)
 
@@ -206,5 +332,7 @@ def main():
 if __name__ == "__main__":
     if len(sys.argv) == 4 and sys.argv[1] == "cutout":
         save(cutout(load(sys.argv[2])), Path(sys.argv[3]))
+    elif len(sys.argv) == 3 and sys.argv[1] == "purchased":
+        print(parse_purchased(sys.argv[2]))
     else:
         main()

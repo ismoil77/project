@@ -77,6 +77,18 @@ h2{font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--mute
 .flaw{position:absolute;right:8px;top:8px;background:color-mix(in srgb,var(--warn) 92%,#000);color:#fff;font-size:10.5px;font-weight:800;padding:4px 7px;border-radius:999px;max-width:60%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cond{display:inline-block;font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px;background:var(--chip);margin-left:6px;vertical-align:2px}
 .cond.bad{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.renew{position:absolute;right:8px;top:8px;background:rgba(20,20,18,.75);color:#fff;font-size:10.5px;font-weight:800;padding:4px 7px;border-radius:999px}
+.item.arch{opacity:.55;filter:grayscale(.6)}
+.life{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:6px}
+.life i{display:block;height:100%;background:var(--accent)}
+.life i.old{background:var(--warn)}
+.sheet .acts .btn.danger{color:var(--warn)}
+.renewlist .row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-top:1px solid var(--line);cursor:pointer}
+.renewlist .row:first-child{border-top:none}
+.renewlist .row .im{width:52px;height:60px;border-radius:12px;background:var(--photo);overflow:hidden;flex:0 0 auto}
+.renewlist .row img{width:100%;height:100%;object-fit:cover}
+.renewlist .row b{display:block;font-size:14px}
+.renewlist .row span{font-size:12.5px;color:var(--warn);font-weight:700}
 .slider{padding:18px}
 .slider .rowx{display:flex;align-items:center;gap:14px}
 .slider output{font-size:34px;font-weight:800;min-width:84px;letter-spacing:-1px}
@@ -201,6 +213,7 @@ dialog::backdrop{background:rgba(15,14,12,.5);backdrop-filter:blur(3px)}
   </section>
 
   <section class="view" id="v-wish">
+    <div id="renewBox"></div>
     <h2>Что купить</h2>
     <div id="wish"></div>
     <p class="note">Список ведёт Claude. Напиши ему, что добавить или убрать.</p>
@@ -241,10 +254,33 @@ let DATA, cat = 'Все', query = '';
 const OCCS = ['Работа','Повседневно','Спорт','Дом','Праздник / выход'];
 const defaultOcc = () => { const d = new Date(Date.now() + 5*3600e3).getUTCDay(); return d >= 1 && d <= 5 ? 'Работа' : 'Повседневно'; };
 let OCC = sessionStorage.getItem('occ') || defaultOcc();
+const ARCHIVE = id => `https://github.com/${REPO}/issues/new?template=archive-item.yml&item=${encodeURIComponent(id)}&title=${encodeURIComponent('Архив: ' + id)}`;
+const isActive = i => i.status !== 'archived';
+const active = () => DATA.items.filter(isActive);
+const MON = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+const fmtDate = d => { if (!d) return ''; const [y, m, dd] = d.split('-'); return (dd ? +dd + ' ' : '') + MON[+m - 1] + ' ' + y; };
+const yearsWord = y => y < 1 ? `${Math.max(1, Math.round(y * 12))} мес.` : `${(Math.round(y * 10) / 10).toString().replace('.', ',')} ${y < 2 ? 'год' : y < 5 ? 'года' : 'лет'}`;
+// Age in years: from purchase date if known, otherwise from the day it was added
+function ageYears(i){
+  const d = i.purchased?.date || i.added; if (!d) return null;
+  const [y, m, dd] = d.split('-').map(Number);
+  return (Date.now() - new Date(y, (m || 6) - 1, dd || 15)) / (365.25 * 864e5);
+}
+const lifespan = i => DATA.lifespan_years?.[i.type] ?? DATA.lifespan_years?.[i.category] ?? 3;
+const WORN = ['выцвел цвет','дырка / зацепка','растянулась / села'];
+// Why the item may need replacing (or '' if fine)
+function renewReason(i){
+  const a = ageYears(i), l = lifespan(i);
+  if (i.purchased?.date && a >= l) return `носится ${yearsWord(a)} — обычный срок ~${yearsWord(l)}`;
+  const worn = (i.flaws || []).filter(f => WORN.includes(f));
+  if (worn.length) return worn.join(', ');
+  return '';
+}
 const hasFlaws = i => (i.flaws?.length > 0) || i.condition === 'есть дефекты';
 const flawText = i => (i.flaws?.length ? i.flaws.join(', ') : i.condition === 'есть дефекты' ? 'дефект' : '');
 // Can this item be worn for the selected occasion?
 function allowed(i, occ = OCC){
+  if (!isActive(i)) return false;
   if (i.occasions?.length && !i.occasions.includes(occ)) return false;
   if (occ === 'Праздник / выход' && (hasFlaws(i) || i.condition === 'только дом/спорт')) return false;
   if (occ === 'Работа' && i.condition === 'только дом/спорт') return false;
@@ -260,7 +296,7 @@ function route(){
   const v = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'today';
   document.querySelectorAll('.view').forEach(e => e.classList.toggle('on', e.id === 'v-' + v));
   document.querySelectorAll('#nav a').forEach(a => a.classList.toggle('on', a.dataset.v === v));
-  if (DATA) $('#sub').textContent = TITLES[v] + (v === 'items' ? ` · ${DATA.items.length}` : '');
+  if (DATA) $('#sub').textContent = TITLES[v] + (v === 'items' ? ` · ${active().length}` : '');
   window.scrollTo({top: 0});
 }
 addEventListener('hashchange', route);
@@ -286,18 +322,29 @@ function bindDots(root){
   });
 }
 function renderItems(){
-  const counts = DATA.items.reduce((a, i) => (a[i.category] = (a[i.category]||0) + 1, a), {});
-  const flawN = DATA.items.filter(hasFlaws).length;
-  const cats = ['Все', ...Object.keys(counts), ...(flawN ? ['⚠ С дефектами'] : [])];
-  counts['⚠ С дефектами'] = flawN;
-  $('#chips').innerHTML = cats.map(c => `<button class="${c===cat?'on':''}" data-c="${esc(c)}">${esc(c)}<small>${c==='Все'?DATA.items.length:counts[c]}</small></button>`).join('');
+  const act = active();
+  const FILTERS = {
+    'Все': () => true,
+    ...Object.fromEntries([...new Set(act.map(i => i.category))].map(c => [c, i => i.category === c])),
+    '☀ Лето': i => i.season?.includes('лето'),
+    '🍂 Межсезонье': i => i.season?.includes('межсезонье'),
+    '❄ Зима': i => i.season?.includes('зима'),
+    '⚠ С дефектами': hasFlaws,
+    '⏳ Пора обновить': i => !!renewReason(i),
+  };
+  const counts = Object.fromEntries(Object.entries(FILTERS).map(([k, fn]) => [k, act.filter(fn).length]));
+  const archN = DATA.items.length - act.length;
+  const cats = Object.keys(FILTERS).filter(k => k === 'Все' || counts[k]).concat(archN ? ['🗄 Архив'] : []);
+  counts['🗄 Архив'] = archN;
+  if (!cats.includes(cat)) cat = 'Все';
+  $('#chips').innerHTML = cats.map(c => `<button class="${c===cat?'on':''}" data-c="${esc(c)}">${esc(c)}<small>${counts[c]}</small></button>`).join('');
   const q = query.toLowerCase();
-  const list = DATA.items.filter(i => (cat === 'Все' || i.category === cat || (cat === '⚠ С дефектами' && hasFlaws(i))) &&
+  const list = (cat === '🗄 Архив' ? DATA.items.filter(i => !isActive(i)) : act.filter(FILTERS[cat])).filter(i =>
     (!q || [i.name, i.brand, i.color?.name, i.material, i.type, i.category, ...(i.flaws||[]), i.flaw_notes, ...(i.occasions||[])].join(' ').toLowerCase().includes(q)));
   $('#grid').innerHTML = (list.length ? '' : '<div class="empty" style="grid-column:1/-1">Ничего не найдено</div>') +
     list.map(i => `
-    <article class="card item" data-id="${esc(i.id)}">
-      <div class="car">${carousel(i.photos, i.name)}<span class="badge">${fmtT(i.temp[0])}…${fmtT(i.temp[1])}</span>${hasFlaws(i) ? `<span class="flaw">⚠ ${esc(flawText(i))}</span>` : ''}</div>
+    <article class="card item ${isActive(i) ? '' : 'arch'}" data-id="${esc(i.id)}">
+      <div class="car">${carousel(i.photos, i.name)}<span class="badge">${fmtT(i.temp[0])}…${fmtT(i.temp[1])}</span>${hasFlaws(i) ? `<span class="flaw">⚠ ${esc(flawText(i))}</span>` : renewReason(i) ? '<span class="renew">⏳ обновить</span>' : ''}</div>
       <div class="b">${i.brand ? `<div class="brand">${esc(i.brand)}</div>` : ''}<div class="n">${esc(i.name)}</div>
         <div class="m"><span><span class="sw" style="background:${esc(i.color?.hex||'#999')}"></span>${esc(i.color?.name||'')}</span>${warmth(i.warmth)}</div></div>
     </article>`).join('') +
@@ -312,19 +359,29 @@ function openItem(id){
   const i = DATA.items.find(x => x.id === id); if (!i) return;
   const ph = i.photos || [];
   const rows = [['Категория', i.type || i.category], ['Цвет', i.color?.name], ['Состав', i.material], ['Размер', i.size], ['Артикул', i.article],
+    ['Сезон', (i.season||[]).join(', ')], ['Плотность', i.thickness],
     ['Носить при', fmtT(i.temp[0]) + ' … ' + fmtT(i.temp[1])], ['Теплота', i.warmth + ' / 5'], ['Слой', i.layer],
     ['Защита', [i.windproof && 'ветер', i.waterproof === true ? 'дождь' : i.waterproof].filter(Boolean).join(', ')],
     ['Состояние', i.condition], ['Дефекты', (i.flaws||[]).join(', ')], ['Где дефект', i.flaw_notes],
-    ['Где носить', (i.occasions||[]).join(', ') || 'везде'], ['Уход', i.care], ['Заметки', i.notes], ['ID', i.id]].filter(r => r[1]);
+    ['Где носить', (i.occasions||[]).join(', ') || 'везде'],
+    ['Куплена', i.purchased ? (i.purchased.approx ? '≈ ' : '') + (i.purchased.text || fmtDate(i.purchased.date)) : 'не указано'],
+    ['Добавлена', fmtDate(i.added)], ['Цена', i.price],
+    ['В архиве', i.archived ? `${fmtDate(i.archived.date)} · ${i.archived.reason}${i.archived.comment ? ' · ' + i.archived.comment : ''}` : ''],
+    ['Уход', i.care], ['Заметки', i.notes], ['ID', i.id]].filter(r => r[1]);
+  const age = ageYears(i), life = lifespan(i), rr = renewReason(i);
+  const lifeHTML = age === null ? '' : `<dt>Возраст</dt><dd>${esc(yearsWord(age))}${i.purchased?.date ? '' : ' <span style="color:var(--muted);font-weight:500">(с даты добавления)</span>'} из ~${esc(yearsWord(life))}
+      <div class="life"><i class="${age >= life ? 'old' : ''}" style="width:${Math.min(100, age / life * 100)}%"></i></div>
+      ${rr ? `<div style="color:var(--warn);margin-top:6px">⏳ Пора обновить: ${esc(rr)}</div>` : ''}</dd>`;
   $('#dlgBody').innerHTML = `
     <div class="grab"></div>
     <div class="gal"><div class="track">${ph.map(p => img(p, i.name)).join('')}</div>${ph.length > 1 ? `<span class="cnt">1 / ${ph.length}</span>` : ''}</div>
     ${ph.length > 1 ? `<div class="thumbs">${ph.map((p, k) => `<img src="${esc(p)}" data-k="${k}" class="${k?'':'on'}" alt="">`).join('')}</div>` : ''}
     <div class="sheet">${i.brand ? `<div class="brand">${esc(i.brand)}</div>` : ''}<h3>${esc(i.name)}${i.condition ? `<span class="cond ${hasFlaws(i)||i.condition==='только дом/спорт'?'bad':''}">${esc(i.condition)}</span>` : ''}</h3>
-      <dl>${rows.map(r => `<dt>${r[0]}</dt><dd>${esc(r[1])}</dd>`).join('')}</dl>
+      <dl>${rows.map(r => `<dt>${r[0]}</dt><dd>${esc(r[1])}</dd>`).join('')}${lifeHTML}</dl>
       <div class="acts">
         <a class="btn pri" target="_blank" rel="noopener" href="${ISSUE('&existing=' + encodeURIComponent(i.id) + '&title=' + encodeURIComponent('Фото: ' + i.name))}">+ Фото</a>
-        <a class="btn sec" target="_blank" rel="noopener" href="${ISSUE('&existing=' + encodeURIComponent(i.id) + '&title=' + encodeURIComponent('Состояние: ' + i.name))}">⚠ Дефект / состояние</a>
+        <a class="btn sec" target="_blank" rel="noopener" href="${ISSUE('&existing=' + encodeURIComponent(i.id) + '&title=' + encodeURIComponent('Изменить: ' + i.name))}">✎ Изменить</a>
+        <a class="btn sec ${isActive(i) ? 'danger' : ''}" style="grid-column:1/-1" target="_blank" rel="noopener" href="${ARCHIVE(i.id)}">${isActive(i) ? '🗄 Больше не ношу — в архив' : '↩ Вернуть в гардероб'}</a>
         ${i.link ? `<a class="btn sec" style="grid-column:1/-1" target="_blank" rel="noopener" href="${esc(i.link)}">Товар ↗</a>` : ''}
       </div></div>`;
   const body = $('#dlgBody');
@@ -343,6 +400,11 @@ $('#occ').onclick = e => { const b = e.target.closest('button'); if (!b) return;
 
 /* ---------- wishlist & colors ---------- */
 function renderWish(){
+  const rn = active().filter(i => renewReason(i));
+  $('#renewBox').innerHTML = rn.length ? `<h2>Пора обновить</h2><div class="card renewlist">${rn.map(i => `
+    <div class="row" data-id="${esc(i.id)}"><div class="im">${i.photos?.[0] ? img(i.photos[0]) : ''}</div>
+      <div><b>${esc(i.name)}</b><span>${esc(renewReason(i))}</span></div></div>`).join('')}</div>` : '';
+  $('#renewBox').onclick = e => { const r = e.target.closest('.row'); if (r) openItem(r.dataset.id); };
   $('#wish').innerHTML = DATA.wishlist.map(w => `
     <div class="card w"><div class="pr ${w.priority==='высокий'?'':'mid'}">Приоритет: ${esc(w.priority)}</div>
       <h3>${esc(w.name)}</h3><p>${esc(w.why)}</p><p>${esc(w.specs)}</p>
@@ -377,7 +439,7 @@ function outfit(t, rain){
   if (t < 3) warns.push('Шапка и перчатки.');
   if (!tops.length) missing.unshift('Верх');
   if (!bottoms.length) missing.push('Низ');
-  const excluded = DATA.items.filter(i => !allowed(i));
+  const excluded = active().filter(i => !allowed(i));
   const flawed = pick.filter(hasFlaws);
   return {pick, missing, warns, excluded, flawed};
 }

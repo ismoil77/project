@@ -1,4 +1,4 @@
-name: Add wardrobe item
+name: Wardrobe update
 
 on:
   issues:
@@ -15,7 +15,9 @@ concurrency:
 jobs:
   add:
     # Only the repository owner may add items (the repo is public).
-    if: contains(github.event.issue.labels.*.name, 'new-item') && github.event.issue.user.login == github.repository_owner
+    if: >-
+      (contains(github.event.issue.labels.*.name, 'new-item') || contains(github.event.issue.labels.*.name, 'archive-item'))
+      && github.event.issue.user.login == github.repository_owner
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,6 +42,7 @@ jobs:
           ISSUE_BODY: ${{ github.event.issue.body }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RESULT_FILE: ${{ runner.temp }}/result.md
+          FORM: ${{ contains(github.event.issue.labels.*.name, 'archive-item') && 'archive' || 'add' }}
         run: python scripts/add_item.py
 
       - name: Commit
@@ -47,7 +50,7 @@ jobs:
           git config user.name "wardrobe-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add wardrobe
-          git commit -m "Add item from issue #${{ github.event.issue.number }}"
+          git commit -m "Wardrobe update from issue #${{ github.event.issue.number }}"
           for i in 1 2 3; do git pull --rebase && git push && break; sleep 5; done
 
       - name: Reply and close

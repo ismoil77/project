@@ -1,0 +1,27 @@
+name: "🗄 Убрать в архив / вернуть"
+description: "Вещь больше не носится — убрать из образов, но сохранить историю. Или вернуть из архива."
+title: "Архив: "
+labels: ["archive-item"]
+body:
+  - type: input
+    id: item
+    attributes:
+      label: "ID вещи"
+      description: "id с сайта, например top-002"
+    validations:
+      required: true
+  - type: dropdown
+    id: action
+    attributes:
+      label: "Что сделать"
+      options: ["Убрать в архив", "Вернуть в гардероб"]
+      default: 0
+  - type: dropdown
+    id: reason
+    attributes:
+      label: "Причина"
+      options: ["Износилась", "Не подходит по размеру", "Не нравится / не ношу", "Отдал / продал", "Потерял", "Другое"]
+  - type: textarea
+    id: comment
+    attributes:
+      label: "Комментарий"
