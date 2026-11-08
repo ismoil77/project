@@ -393,7 +393,7 @@ function openItem(id){
   const i = DATA.items.find(x => x.id === id); if (!i) return;
   const ph = i.photos || [];
   const STYLE = ['','спорт','повседневный','смарт-кэжуал','деловой','строгий'];
-  const rows = [['Категория', [i.category, i.type].filter(Boolean).join(' · ')], ['Цвет', [i.color?.name, i.color?.family, i.color?.tone].filter(Boolean).join(' · ') + (i.color?.secondary?.length ? ' + ' + i.color.secondary.map(c => c.name).join(', ') : '')], ['Узор', i.pattern], ['Стиль', i.formality ? i.formality + ' — ' + STYLE[i.formality] : ''], ['Стелька', i.insole_cm ? i.insole_cm + ' см' : ''], ['Состав', i.material], ['Размер', i.size], ['Артикул', i.article],
+  const rows = [['Категория', [i.category, i.type].filter(Boolean).join(' · ')], ['Цвет', [i.color?.name, i.color?.family, i.color?.tone].filter(Boolean).join(' · ') + (i.color?.secondary?.length ? ' + ' + i.color.secondary.map(c => c.name).join(', ') : '')], ['Узор', i.pattern], ['Стиль', i.formality ? i.formality + ' — ' + STYLE[i.formality] : ''], ['Стелька', i.insole_cm ? i.insole_cm + ' см' : ''], ['Состав', i.material], ['Размер', i.size], ['Посадка', i.fit], ['Артикул', i.article],
     ['Сезон', (i.season||[]).join(', ')], ['Плотность', i.thickness],
     ['Носить при', fmtT(i.temp[0]) + ' … ' + fmtT(i.temp[1])], ['Теплота', i.warmth + ' / 5'], ['Слой', i.layer],
     ['Просвечивает', i.sheer], ['Защита', [i.windproof && 'ветер', i.waterproof === true ? 'дождь' : i.waterproof].filter(Boolean).join(', ')],
