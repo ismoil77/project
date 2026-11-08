@@ -4,239 +4,365 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Гардероб</title>
-<meta name="theme-color" content="#f4f1ea">
+<meta name="theme-color" content="#f4f1ea" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121210" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#f4f1ea; --card:#fffdf8; --ink:#1b1a17; --muted:#77736a; --line:#e4dfd3;
-    --accent:#5b5f2f; --accent-2:#b5543a; --chip:#ebe6da; --shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(40,30,10,.06);
-    --r:18px;
-  }
-  @media (prefers-color-scheme:dark){
-    :root{--bg:#141412;--card:#1d1c19;--ink:#f1ede4;--muted:#9c978b;--line:#2d2b27;--chip:#26241f;--accent:#a9ae6a;--accent-2:#e08a6c;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25)}
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-  a{color:inherit}
-  .wrap{max-width:1100px;margin:0 auto;padding:max(20px,env(safe-area-inset-top)) 18px 60px}
-  header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:8px 0 22px}
-  h1{font-family:"Playfair Display",Georgia,serif;font-size:clamp(34px,7vw,56px);line-height:1;margin:0;letter-spacing:-.5px}
-  .sub{color:var(--muted);font-size:14px;margin-top:8px}
-  .stats{display:flex;gap:18px;text-align:right}
-  .stats b{display:block;font-size:24px}
-  .stats span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-  h2{font-size:13px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);margin:34px 0 14px;font-weight:700}
+:root{
+  --bg:#f4f1ea; --card:#fffdf8; --ink:#1b1a17; --muted:#77736a; --line:#e6e1d6; --chip:#ece7dc;
+  --photo:#ebe6dc; --accent:#5b5f2f; --warn:#b5543a; --nav:rgba(255,253,248,.88);
+  --shadow:0 1px 2px rgba(0,0,0,.04),0 10px 30px rgba(40,30,10,.07); --r:20px;
+  --safe-b:env(safe-area-inset-bottom); --navh:68px;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#121210;--card:#1c1b18;--ink:#f1ede4;--muted:#9c978b;--line:#2c2a26;--chip:#26241f;--photo:#24221e;
+        --accent:#b3b878;--warn:#e8906f;--nav:rgba(28,27,24,.88);--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.3)}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+a{color:inherit}
+.app{max-width:760px;margin:0 auto;padding:0 16px calc(var(--navh) + var(--safe-b) + 28px)}
 
-  /* weather */
-  .weather{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-  .day{background:var(--card);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow);border:1px solid var(--line)}
-  .day .d{font-weight:700;font-size:15px;display:flex;justify-content:space-between}
-  .day .t{font-size:30px;font-weight:800;margin:6px 0 2px;letter-spacing:-1px}
-  .day .t small{font-size:14px;color:var(--muted);font-weight:600;letter-spacing:0}
-  .day .rain{font-size:13px;font-weight:700}
-  .day .rain.yes{color:var(--accent-2)}
-  .day .rain.no{color:var(--muted)}
-  .day .wear{margin-top:10px;font-size:13.5px;line-height:1.45;border-top:1px dashed var(--line);padding-top:10px}
-  .day .wear .miss{color:var(--accent-2);font-weight:700}
-  .note{font-size:12px;color:var(--muted);margin-top:8px}
+/* top bar */
+.top{position:sticky;top:0;z-index:20;margin:0 -16px;padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;
+  background:linear-gradient(var(--bg) 70%,transparent);display:flex;align-items:center;justify-content:space-between}
+.top h1{font-family:"Playfair Display",Georgia,serif;font-size:30px;margin:0;letter-spacing:-.3px;line-height:1}
+.top .sub{font-size:12px;color:var(--muted);margin-top:4px;font-weight:600}
+.iconbtn{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;
+  text-decoration:none;box-shadow:var(--shadow)}
+.iconbtn svg{width:22px;height:22px}
 
-  /* temp slider */
-  .slider{background:var(--card);border-radius:var(--r);padding:18px;box-shadow:var(--shadow);border:1px solid var(--line)}
-  .slider .row{display:flex;align-items:center;gap:16px}
-  .slider output{font-size:34px;font-weight:800;min-width:92px;letter-spacing:-1px}
-  input[type=range]{flex:1;accent-color:var(--accent);height:28px}
-  .slider .res{margin-top:10px;font-size:14px;line-height:1.5}
+/* views */
+.view{display:none;animation:fade .25s ease}
+.view.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);margin:26px 2px 12px;font-weight:800}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
 
-  /* filters */
-  .filters{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
-  .filters button{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 16px;border-radius:999px;font:600 14px Manrope,sans-serif;white-space:nowrap;cursor:pointer}
-  .filters button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+/* today */
+.hero{padding:20px}
+.hero .when{display:flex;justify-content:space-between;font-weight:700;color:var(--muted);font-size:13px}
+.hero .big{display:flex;align-items:baseline;gap:12px;margin:6px 0 4px}
+.hero .big b{font-size:64px;letter-spacing:-3px;line-height:1}
+.hero .big span{color:var(--muted);font-size:14px;font-weight:600;line-height:1.4}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;font-weight:700;font-size:13px;background:var(--chip)}
+.pill.rain{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)}
+.look{display:flex;gap:10px;overflow-x:auto;margin:16px -4px 4px;padding:0 4px 4px;scrollbar-width:none}
+.look .it{flex:0 0 96px;text-align:center;font-size:11.5px;font-weight:600;color:var(--muted);cursor:pointer}
+.look .it .im{width:96px;height:112px;border-radius:16px;background:var(--photo);display:grid;place-items:center;overflow:hidden;margin-bottom:6px}
+.look .it img{width:100%;height:100%;object-fit:contain;padding:6px}
+.look .it img.cover{object-fit:cover;padding:0}
+.look .it.miss .im{border:1.5px dashed var(--warn);background:transparent;color:var(--warn);font-size:28px}
+.warns{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.warns div{font-size:13.5px;font-weight:700;color:var(--warn)}
+.days .row{display:grid;grid-template-columns:62px 1fr auto;gap:12px;align-items:center;padding:14px 16px;border-top:1px solid var(--line)}
+.days .row:first-child{border-top:none}
+.days .d b{display:block;font-size:15px}
+.days .d span{font-size:12px;color:var(--muted)}
+.days .w{font-size:13px;line-height:1.35}
+.days .w b{font-size:17px}
+.days .w .o{color:var(--muted);display:block;margin-top:2px}
+.days .u{font-size:22px;color:var(--warn)}
+.slider{padding:18px}
+.slider .rowx{display:flex;align-items:center;gap:14px}
+.slider output{font-size:34px;font-weight:800;min-width:84px;letter-spacing:-1px}
+input[type=range]{flex:1;accent-color:var(--accent);height:30px}
+.note{font-size:12px;color:var(--muted);margin:10px 4px 0;line-height:1.4}
 
-  /* grid */
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;margin-top:14px}
-  .card{background:var(--card);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--line);cursor:pointer;transition:transform .2s ease, box-shadow .2s ease;display:flex;flex-direction:column}
-  .card:hover{transform:translateY(-3px)}
-  .card.dim{opacity:.35}
-  .ph{aspect-ratio:4/5;background:var(--chip);position:relative;overflow:hidden}
-  .ph img{width:100%;height:100%;object-fit:cover;display:block}
-  .ph .badge{position:absolute;left:10px;top:10px;background:rgba(20,20,18,.78);color:#fff;font-size:12px;font-weight:700;padding:5px 9px;border-radius:999px;backdrop-filter:blur(6px)}
-  .ph .count{position:absolute;right:10px;top:10px;background:rgba(255,255,255,.85);color:#111;font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px}
-  .body{padding:14px 15px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
-  .brand{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:700}
-  .name{font-weight:700;font-size:16px;line-height:1.25}
-  .meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
-  .sw{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.15);display:inline-block;vertical-align:-2px;margin-right:5px}
-  .warm{display:inline-flex;gap:3px}
-  .warm i{width:14px;height:6px;border-radius:3px;background:var(--line)}
-  .warm i.f{background:var(--accent-2)}
-  .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
-  .tag{font-size:11.5px;background:var(--chip);padding:4px 8px;border-radius:8px;font-weight:600}
+/* items */
+.search{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0 14px;height:46px;color:var(--muted)}
+.search input{flex:1;border:none;background:transparent;font:500 15px Manrope,sans-serif;color:var(--ink);outline:none}
+.chips{display:flex;gap:8px;overflow-x:auto;margin:12px -16px 0;padding:0 16px 2px;scrollbar-width:none}
+.chips button{border:1px solid var(--line);background:var(--card);padding:8px 14px;border-radius:999px;font-weight:700;font-size:13.5px;white-space:nowrap;cursor:pointer}
+.chips button small{color:var(--muted);font-weight:600;margin-left:5px}
+.chips button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chips button.on small{color:inherit;opacity:.7}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
+@media(min-width:640px){.grid{grid-template-columns:repeat(3,1fr)}}
+.item{overflow:hidden;cursor:pointer;display:flex;flex-direction:column}
+.car{position:relative;aspect-ratio:4/5;background:var(--photo);overflow:hidden}
+.car .track,.gal .track{position:absolute;inset:0}
+.track{display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+.track::-webkit-scrollbar,.chips::-webkit-scrollbar,.look::-webkit-scrollbar,.thumbs::-webkit-scrollbar{display:none}
+.car img{flex:0 0 100%;width:100%;height:100%;object-fit:contain;padding:10px;scroll-snap-align:center}
+.car img.cover{object-fit:cover;padding:0}
+.dots{position:absolute;bottom:8px;left:0;right:0;display:flex;justify-content:center;gap:5px;pointer-events:none}
+.dots i{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.7);box-shadow:0 0 0 1px rgba(0,0,0,.15);transition:all .2s}
+.dots i.on{background:#fff;width:16px}
+.badge{position:absolute;left:8px;top:8px;background:rgba(20,20,18,.75);color:#fff;font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px;backdrop-filter:blur(6px)}
+.item .b{padding:10px 12px 12px}
+.brand{font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:800}
+.item .n{font-weight:700;font-size:14px;line-height:1.25;margin-top:2px}
+.item .m{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:8px;font-size:12px;color:var(--muted)}
+.item .m > span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sw{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.15);display:inline-block;vertical-align:-2px;margin-right:5px}
+.warm{display:inline-flex;gap:2px;flex:0 0 auto}
+.warm i{width:9px;height:5px;border-radius:3px;background:var(--line)}
+.warm i.f{background:var(--warn)}
+.addcard{border:1.5px dashed var(--line);border-radius:var(--r);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  color:var(--muted);font-weight:700;font-size:13.5px;text-decoration:none;min-height:220px;text-align:center;padding:12px}
+.addcard span{font-size:36px;line-height:1;color:var(--ink)}
+.empty{text-align:center;color:var(--muted);padding:40px 10px}
 
-  /* wishlist */
-  .wish{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
-  .w{background:var(--card);border:1.5px dashed var(--line);border-radius:var(--r);padding:18px}
-  .w .pr{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--accent-2)}
-  .w .pr.mid{color:var(--accent)}
-  .w h3{margin:6px 0 6px;font-size:18px}
-  .w p{margin:4px 0;font-size:13.5px;line-height:1.45;color:var(--muted)}
-  .w .cols{display:flex;gap:6px;margin:10px 0}
-  .w .cols .sw{width:22px;height:22px;margin:0}
-  .btn{display:inline-block;margin-top:8px;background:#7c3aed;color:#fff;text-decoration:none;font-weight:700;font-size:14px;padding:10px 14px;border-radius:12px}
+/* wishlist & colors */
+.w{padding:18px;margin-bottom:12px}
+.w .pr{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--warn)}
+.w .pr.mid{color:var(--accent)}
+.w h3{margin:6px 0;font-size:18px}
+.w p{margin:4px 0;font-size:13.5px;line-height:1.45;color:var(--muted)}
+.w .cols{display:flex;gap:6px;margin:12px 0}
+.w .cols .sw{width:24px;height:24px;margin:0}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:14px;font-weight:800;font-size:15px;text-decoration:none;border:none;cursor:pointer}
+.btn.wb{background:#7c3aed;color:#fff}
+.btn.pri{background:var(--ink);color:var(--bg)}
+.btn.sec{background:var(--chip);color:var(--ink)}
+.pal{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 8px;padding:18px}
+.pc{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);text-align:center;font-weight:600}
+.pc .sw{width:52px;height:52px;margin:0;border-radius:16px}
+.pc.bad .sw{position:relative;opacity:.8}
+.pc.bad .sw::after{content:"";position:absolute;inset:-2px;border-radius:16px;background:linear-gradient(135deg,transparent 46%,var(--warn) 46%,var(--warn) 54%,transparent 54%)}
+.rules{padding:6px 18px 6px 34px;margin:0}
+.rules li{margin:12px 0;font-size:14px;line-height:1.45}
 
-  /* palette */
-  .pal{display:flex;flex-wrap:wrap;gap:10px}
-  .pc{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);width:72px;text-align:center}
-  .pc .sw{width:48px;height:48px;margin:0;border-radius:14px}
-  .pc.bad .sw{position:relative;opacity:.75}
-  .pc.bad .sw::after{content:"";position:absolute;inset:-3px;background:linear-gradient(135deg,transparent 47%,var(--accent-2) 47%,var(--accent-2) 53%,transparent 53%)}
+/* bottom nav */
+nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--nav);backdrop-filter:saturate(1.6) blur(16px);-webkit-backdrop-filter:saturate(1.6) blur(16px);
+  border-top:1px solid var(--line);padding-bottom:var(--safe-b)}
+nav .in{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);height:var(--navh)}
+nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-decoration:none;font-size:11px;font-weight:700;color:var(--muted)}
+nav a svg{width:24px;height:24px;display:block}
+nav a.on{color:var(--ink)}
+nav a .ic{padding:4px 18px;border-radius:999px;transition:background .2s}
+nav a.on .ic{background:var(--chip)}
 
-  /* modal */
-  dialog{border:none;padding:0;border-radius:22px;max-width:min(680px,94vw);width:100%;background:var(--card);color:var(--ink);box-shadow:0 30px 80px rgba(0,0,0,.35)}
-  dialog::backdrop{background:rgba(15,14,12,.55);backdrop-filter:blur(4px)}
-  .gal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;background:#000}
-  .gal img{width:100%;flex:0 0 100%;max-height:60vh;object-fit:contain;scroll-snap-align:center}
-  .md{padding:18px 20px 22px}
-  .md h3{margin:4px 0 12px;font-size:22px}
-  .md dl{display:grid;grid-template-columns:120px 1fr;gap:8px 12px;margin:0;font-size:14px}
-  .md dt{color:var(--muted)}
-  .md dd{margin:0}
-  .x{position:absolute;right:12px;top:12px;background:rgba(255,255,255,.9);border:none;border-radius:50%;width:36px;height:36px;font-size:20px;cursor:pointer;color:#111}
-  footer{margin-top:40px;color:var(--muted);font-size:12px;text-align:center}
+/* sheet */
+dialog{border:none;padding:0;margin:auto auto 0;width:100%;max-width:760px;max-height:92vh;border-radius:24px 24px 0 0;background:var(--card);color:var(--ink);overflow:auto}
+@media(min-width:760px){dialog{margin:auto;border-radius:24px;max-height:88vh}}
+dialog[open]{animation:up .28s cubic-bezier(.2,.8,.2,1)}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+dialog::backdrop{background:rgba(15,14,12,.5);backdrop-filter:blur(3px)}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:10px auto 0}
+.gal{position:relative;background:var(--photo);margin-top:10px;aspect-ratio:1/1;max-height:56vh;overflow:hidden}
+.gal img{flex:0 0 100%;width:100%;height:100%;object-fit:contain;padding:16px;scroll-snap-align:center}
+.gal img.cover{object-fit:cover;padding:0}
+.gal .cnt{position:absolute;right:12px;bottom:12px;background:rgba(20,20,18,.7);color:#fff;font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px}
+.thumbs{display:flex;gap:8px;padding:10px 16px 0;overflow-x:auto;scrollbar-width:none}
+.thumbs img{width:56px;height:56px;border-radius:12px;object-fit:cover;background:var(--photo);border:2px solid transparent;cursor:pointer;flex:0 0 auto}
+.thumbs img.on{border-color:var(--ink)}
+.sheet{padding:16px 20px calc(24px + var(--safe-b))}
+.sheet h3{margin:4px 0 14px;font-size:24px;line-height:1.15}
+.sheet dl{display:grid;grid-template-columns:110px 1fr;gap:10px 12px;margin:0;font-size:14px}
+.sheet dt{color:var(--muted)}
+.sheet dd{margin:0;font-weight:600}
+.sheet .acts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+.close{position:absolute;right:14px;top:22px;z-index:2;width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,.92);color:#111;font-size:20px;cursor:pointer;box-shadow:var(--shadow)}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div>
-      <h1>Гардероб</h1>
-      <div class="sub" id="sizes"></div>
-    </div>
-    <div class="stats"><div><b id="nItems">–</b><span>вещей</span></div><div><b id="nWish">–</b><span>купить</span></div></div>
+<div class="app">
+  <header class="top">
+    <div><h1>Гардероб</h1><div class="sub" id="sub">Загружаю…</div></div>
+    <a class="iconbtn" id="addTop" target="_blank" rel="noopener" aria-label="Добавить вещь">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </a>
   </header>
 
-  <h2>Погода в Душанбе · что надеть утром</h2>
-  <div class="weather" id="weather"><div class="day">Загружаю прогноз…</div></div>
-  <div class="note">Утро = 7:00 (дорога на работу), вечер = 18:00. Зонт — если вероятность дождя ≥ 50% с 6 до 19 ч.</div>
+  <section class="view" id="v-today">
+    <div class="card hero" id="hero"><div class="when">Загружаю прогноз…</div></div>
+    <h2>Ближайшие дни</h2>
+    <div class="card days" id="days"></div>
+    <h2>Подобрать по температуре</h2>
+    <div class="card slider">
+      <div class="rowx"><output id="tOut">+10°</output><input type="range" id="t" min="-10" max="35" value="10" aria-label="Температура"></div>
+      <div class="look" id="tLook"></div><div class="warns" id="tWarn"></div>
+    </div>
+    <p class="note">Душанбе. «Утро» — 7:00, дорога на работу, по ощущаемой температуре. Зонт — если с 6 до 19 ч вероятен дождь.</p>
+  </section>
 
-  <h2>Подбор по температуре</h2>
-  <div class="slider">
-    <div class="row"><output id="tOut">+10°</output><input type="range" id="t" min="-10" max="35" value="10"></div>
-    <div class="res" id="tRes"></div>
-  </div>
+  <section class="view" id="v-items">
+    <label class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Поиск: свитер, чёрный, Rabex…"></label>
+    <div class="chips" id="chips"></div>
+    <div class="grid" id="grid"></div>
+  </section>
 
-  <h2>Мои вещи</h2>
-  <div class="filters" id="filters"></div>
-  <div class="grid" id="grid"></div>
+  <section class="view" id="v-wish">
+    <h2>Что купить</h2>
+    <div id="wish"></div>
+    <p class="note">Список ведёт Claude. Напиши ему, что добавить или убрать.</p>
+  </section>
 
-  <h2>Что купить</h2>
-  <div class="wish" id="wish"></div>
-
-  <h2>Мои цвета</h2>
-  <div class="pal" id="pal"></div>
-
-  <footer>Каталог хранится в <code>wardrobe/wardrobe.json</code> · обновляется через Claude</footer>
+  <section class="view" id="v-colors">
+    <h2>Мои цвета</h2>
+    <div class="card pal" id="pal"></div>
+    <h2>Правила</h2>
+    <div class="card"><ul class="rules">
+      <li><b>Не больше 3 цветов</b> в образе. Белый, чёрный, серый и тёмно-синий — нейтральные.</li>
+      <li><b>60 / 30 / 10</b> — основной цвет, второй и акцент (например, бордовый свитер).</li>
+      <li><b>Один принт</b> на образ, остальное однотонное.</li>
+      <li><b>Рост 165 см</b>: верх и низ близких тонов вытягивают силуэт. Верх — до середины ширинки, брюки без «гармошки» внизу.</li>
+    </ul></div>
+  </section>
 </div>
 
-<dialog id="dlg"><button class="x" onclick="dlg.close()" aria-label="Закрыть">×</button><div id="dlgBody"></div></dialog>
+<nav><div class="in" id="nav">
+  <a href="#today" data-v="today"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span>Сегодня</a>
+  <a href="#items" data-v="items"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M8 3 4 5.5 2.5 10l3 1.2V21h13v-9.8l3-1.2L20 5.5 16 3a4 4 0 0 1-8 0Z"/></svg></span>Вещи</a>
+  <a href="#wish" data-v="wish"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M5 8h14l-1 13H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></span>Купить</a>
+  <a href="#colors" data-v="colors"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="10" r="1.3" fill="currentColor"/><path d="M12 21a2 2 0 0 1 0-4h1.5a2.5 2.5 0 0 0 0-5"/></svg></span>Цвета</a>
+</div></nav>
+
+<dialog id="dlg"><button class="close" onclick="dlg.close()" aria-label="Закрыть">×</button><div id="dlgBody"></div></dialog>
 
 <script>
+const REPO = 'ismoil77/project';
+const ISSUE = (extra = '') => `https://github.com/${REPO}/issues/new?template=add-item.yml${extra}`;
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const fmtT = t => (t > 0 ? '+' : '') + Math.round(t) + '°';
-let DATA, filter = 'Все';
+const fmtT = t => (Math.round(t) > 0 ? '+' : '') + Math.round(t) + '°';
+const isCut = p => /\.(webp|png)$/i.test(p);
+const img = (p, alt = '') => `<img loading="lazy" src="${esc(p)}" alt="${esc(alt)}" class="${isCut(p) ? '' : 'cover'}">`;
+const warmth = n => `<span class="warm" title="Теплота ${n}/5">${[1,2,3,4,5].map(i => `<i class="${i<=n?'f':''}"></i>`).join('')}</span>`;
+let DATA, cat = 'Все', query = '';
 
-fetch('wardrobe/wardrobe.json', {cache: 'no-store'}).then(r => r.json()).then(d => { DATA = d; render(); loadWeather(); });
+$('#addTop').href = ISSUE('&title=' + encodeURIComponent('Вещь: '));
 
-function warmth(n){ return '<span class="warm" title="Теплота '+n+'/5">' + [1,2,3,4,5].map(i => '<i class="'+(i<=n?'f':'')+'"></i>').join('') + '</span>'; }
+/* ---------- routing ---------- */
+const VIEWS = ['today','items','wish','colors'];
+const TITLES = {today:'Что надеть', items:'Мои вещи', wish:'Список покупок', colors:'Цвета и правила'};
+function route(){
+  const v = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'today';
+  document.querySelectorAll('.view').forEach(e => e.classList.toggle('on', e.id === 'v-' + v));
+  document.querySelectorAll('#nav a').forEach(a => a.classList.toggle('on', a.dataset.v === v));
+  if (DATA) $('#sub').textContent = TITLES[v] + (v === 'items' ? ` · ${DATA.items.length}` : '');
+  window.scrollTo({top: 0});
+}
+addEventListener('hashchange', route);
 
-function render(){
-  const s = DATA.owner.sizes;
-  $('#sizes').textContent = `Верх ${s.top} · низ ${s.bottom} · обувь ${s.shoes}`;
-  $('#nItems').textContent = DATA.items.length;
-  $('#nWish').textContent = DATA.wishlist.length;
+fetch('wardrobe/wardrobe.json', {cache: 'no-store'}).then(r => r.json()).then(d => {
+  DATA = d; route(); renderItems(); renderWish(); renderColors(); initSlider(); loadWeather();
+});
 
-  const cats = ['Все', ...new Set(DATA.items.map(i => i.category))];
-  $('#filters').innerHTML = cats.map(c => `<button class="${c===filter?'on':''}" data-c="${esc(c)}">${esc(c)}</button>`).join('');
-  $('#filters').onclick = e => { const c = e.target.dataset.c; if (c) { filter = c; render(); } };
+/* ---------- items ---------- */
+function carousel(photos, name){
+  if (!photos?.length) return '';
+  return `<div class="track">${photos.map(p => img(p, name)).join('')}</div>` +
+    (photos.length > 1 ? `<div class="dots">${photos.map((_, i) => `<i class="${i?'':'on'}"></i>`).join('')}</div>` : '');
+}
+function bindDots(root){
+  root.querySelectorAll('.track').forEach(tr => {
+    tr.addEventListener('scroll', () => {
+      const i = Math.round(tr.scrollLeft / tr.clientWidth);
+      tr.parentElement.querySelectorAll('.dots i').forEach((d, k) => d.classList.toggle('on', k === i));
+      const c = tr.parentElement.querySelector('.cnt'); if (c) c.textContent = `${i+1} / ${tr.children.length}`;
+      if (tr.closest('.gal')) root.querySelectorAll('.thumbs img').forEach((t, k) => t.classList.toggle('on', k === i));
+    }, {passive: true});
+  });
+}
+function renderItems(){
+  const counts = DATA.items.reduce((a, i) => (a[i.category] = (a[i.category]||0) + 1, a), {});
+  const cats = ['Все', ...Object.keys(counts)];
+  $('#chips').innerHTML = cats.map(c => `<button class="${c===cat?'on':''}" data-c="${esc(c)}">${esc(c)}<small>${c==='Все'?DATA.items.length:counts[c]}</small></button>`).join('');
+  const q = query.toLowerCase();
+  const list = DATA.items.filter(i => (cat === 'Все' || i.category === cat) &&
+    (!q || [i.name, i.brand, i.color?.name, i.material, i.type, i.category].join(' ').toLowerCase().includes(q)));
+  $('#grid').innerHTML = (list.length ? '' : '<div class="empty" style="grid-column:1/-1">Ничего не найдено</div>') +
+    list.map(i => `
+    <article class="card item" data-id="${esc(i.id)}">
+      <div class="car">${carousel(i.photos, i.name)}<span class="badge">${fmtT(i.temp[0])}…${fmtT(i.temp[1])}</span></div>
+      <div class="b">${i.brand ? `<div class="brand">${esc(i.brand)}</div>` : ''}<div class="n">${esc(i.name)}</div>
+        <div class="m"><span><span class="sw" style="background:${esc(i.color?.hex||'#999')}"></span>${esc(i.color?.name||'')}</span>${warmth(i.warmth)}</div></div>
+    </article>`).join('') +
+    `<a class="addcard" target="_blank" rel="noopener" href="${ISSUE('&title=' + encodeURIComponent('Вещь: '))}"><span>+</span>Добавить вещь<small style="font-weight:600">фон удалится сам</small></a>`;
+  bindDots($('#grid'));
+}
+$('#chips').onclick = e => { const b = e.target.closest('button'); if (b) { cat = b.dataset.c; renderItems(); } };
+$('#q').oninput = e => { query = e.target.value; renderItems(); };
+$('#grid').onclick = e => { const c = e.target.closest('.item'); if (c) openItem(c.dataset.id); };
 
-  $('#grid').innerHTML = DATA.items.filter(i => filter==='Все' || i.category===filter).map(i => `
-    <article class="card" data-id="${esc(i.id)}">
-      <div class="ph">
-        ${i.photos?.[0] ? `<img loading="lazy" src="${esc(i.photos[0])}" alt="${esc(i.name)}">` : ''}
-        <span class="badge">${fmtT(i.temp[0])} … ${fmtT(i.temp[1])}</span>
-        ${i.photos?.length > 1 ? `<span class="count">${i.photos.length} фото</span>` : ''}
-      </div>
-      <div class="body">
-        ${i.brand ? `<div class="brand">${esc(i.brand)}</div>` : ''}
-        <div class="name">${esc(i.name)}</div>
-        <div class="meta"><span><span class="sw" style="background:${esc(i.color.hex)}"></span>${esc(i.color.name)}</span>${warmth(i.warmth)}</div>
-        <div class="tags">
-          <span class="tag">${esc(i.layer)}</span>
-          ${i.windproof ? '<span class="tag">🌬 от ветра</span>' : ''}
-          ${i.waterproof === true ? '<span class="tag">☔ непромокаемая</span>' : i.waterproof ? '<span class="tag">💧 '+esc(i.waterproof)+'</span>' : ''}
-          ${i.size ? `<span class="tag">р. ${esc(i.size)}</span>` : ''}
-        </div>
-      </div>
-    </article>`).join('');
-  $('#grid').onclick = e => { const c = e.target.closest('.card'); if (c) openItem(c.dataset.id); };
+function openItem(id){
+  const i = DATA.items.find(x => x.id === id); if (!i) return;
+  const ph = i.photos || [];
+  const rows = [['Категория', i.type || i.category], ['Цвет', i.color?.name], ['Состав', i.material], ['Размер', i.size], ['Артикул', i.article],
+    ['Носить при', fmtT(i.temp[0]) + ' … ' + fmtT(i.temp[1])], ['Теплота', i.warmth + ' / 5'], ['Слой', i.layer],
+    ['Защита', [i.windproof && 'ветер', i.waterproof === true ? 'дождь' : i.waterproof].filter(Boolean).join(', ')],
+    ['Уход', i.care], ['Заметки', i.notes], ['ID', i.id]].filter(r => r[1]);
+  $('#dlgBody').innerHTML = `
+    <div class="grab"></div>
+    <div class="gal"><div class="track">${ph.map(p => img(p, i.name)).join('')}</div>${ph.length > 1 ? `<span class="cnt">1 / ${ph.length}</span>` : ''}</div>
+    ${ph.length > 1 ? `<div class="thumbs">${ph.map((p, k) => `<img src="${esc(p)}" data-k="${k}" class="${k?'':'on'}" alt="">`).join('')}</div>` : ''}
+    <div class="sheet">${i.brand ? `<div class="brand">${esc(i.brand)}</div>` : ''}<h3>${esc(i.name)}</h3>
+      <dl>${rows.map(r => `<dt>${r[0]}</dt><dd>${esc(r[1])}</dd>`).join('')}</dl>
+      <div class="acts">
+        <a class="btn pri" target="_blank" rel="noopener" href="${ISSUE('&existing=' + encodeURIComponent(i.id) + '&title=' + encodeURIComponent('Фото: ' + i.name))}">+ Фото</a>
+        ${i.link ? `<a class="btn sec" target="_blank" rel="noopener" href="${esc(i.link)}">Товар ↗</a>` : `<button class="btn sec" onclick="dlg.close()">Закрыть</button>`}
+      </div></div>`;
+  const body = $('#dlgBody');
+  bindDots(body);
+  body.querySelectorAll('.thumbs img').forEach(t => t.onclick = () => {
+    const tr = body.querySelector('.gal .track'); tr.scrollTo({left: tr.clientWidth * +t.dataset.k, behavior: 'smooth'});
+  });
+  $('#dlg').showModal();
+}
+$('#dlg').addEventListener('click', e => { if (e.target.id === 'dlg') dlg.close(); });
 
+/* ---------- wishlist & colors ---------- */
+function renderWish(){
   $('#wish').innerHTML = DATA.wishlist.map(w => `
-    <div class="w">
-      <div class="pr ${w.priority==='высокий'?'':'mid'}">Приоритет: ${esc(w.priority)}</div>
-      <h3>${esc(w.name)}</h3>
-      <p>${esc(w.why)}</p><p>${esc(w.specs)}</p>
+    <div class="card w"><div class="pr ${w.priority==='высокий'?'':'mid'}">Приоритет: ${esc(w.priority)}</div>
+      <h3>${esc(w.name)}</h3><p>${esc(w.why)}</p><p>${esc(w.specs)}</p>
       <div class="cols">${w.colors.map(c => `<span class="sw" title="${esc(c.name)}" style="background:${esc(c.hex)}"></span>`).join('')}</div>
-      <a class="btn" target="_blank" rel="noopener" href="https://www.wildberries.ru/catalog/0/search.aspx?search=${encodeURIComponent(w.search)}">Искать на Wildberries →</a>
-    </div>`).join('');
-
+      <a class="btn wb" target="_blank" rel="noopener" href="https://www.wildberries.ru/catalog/0/search.aspx?search=${encodeURIComponent(w.search)}">Искать на Wildberries</a>
+    </div>`).join('') || '<div class="empty">Список пуст</div>';
+}
+function renderColors(){
   $('#pal').innerHTML =
     DATA.owner.colors_good.map(c => `<div class="pc"><span class="sw" style="background:${c.hex}"></span>${esc(c.name)}</div>`).join('') +
     DATA.owner.colors_avoid.map(c => `<div class="pc bad"><span class="sw" style="background:${c.hex}"></span>${esc(c.name)}</div>`).join('');
-
-  const t = $('#t'); t.oninput = () => suggest(+t.value); suggest(+t.value);
 }
 
-function openItem(id){
-  const i = DATA.items.find(x => x.id === id);
-  const rows = [['Категория', i.type], ['Цвет', i.color.name], ['Состав', i.material], ['Размер', i.size], ['Артикул', i.article],
-    ['Температура', fmtT(i.temp[0]) + ' … ' + fmtT(i.temp[1])], ['Слой', i.layer], ['Стиль', i.style], ['Уход', i.care], ['Заметки', i.notes]]
-    .filter(r => r[1]);
-  $('#dlgBody').innerHTML = `
-    <div class="gal">${(i.photos||[]).map(p => `<img src="${esc(p)}" alt="">`).join('')}</div>
-    <div class="md"><div class="brand">${esc(i.brand||'')}</div><h3>${esc(i.name)}</h3>
-    <dl>${rows.map(r => `<dt>${r[0]}</dt><dd>${esc(r[1])}</dd>`).join('')}</dl></div>`;
-  $('#dlg').showModal();
-}
-
-/* Outfit logic: layers from the wardrobe for a feels-like temperature t */
+/* ---------- outfit logic ---------- */
 function outfit(t, rain){
   const tops = DATA.items.filter(i => i.category === 'Верх');
   const base = tops.filter(i => i.warmth <= 1);
   const mids = tops.filter(i => i.warmth >= 2).sort((a,b) => a.temp[1] - b.temp[1]);
-  const bottoms = DATA.items.filter(i => i.category === 'Низ' && t <= i.temp[1] + 3);
-  const outer = DATA.items.filter(i => i.category === 'Верхняя одежда');
+  const outer = DATA.items.filter(i => i.category === 'Верхняя одежда' && t <= i.temp[1] + 3)
+    .sort((a,b) => (rain ? (b.waterproof===true) - (a.waterproof===true) : 0) || a.warmth - b.warmth);
+  const bottoms = DATA.items.filter(i => i.category === 'Низ' && t <= i.temp[1] + 3 && t >= i.temp[0] - 8);
+  const shoes = DATA.items.filter(i => i.category === 'Обувь' && t <= i.temp[1] + 3 && t >= i.temp[0] - 5);
   const layers = t >= 20 ? 0 : t >= 13 ? 1 : 2;
-  const parts = [...base.slice(0,1), ...mids.slice(0, layers)];
-  if (t < 10 && outer.length) parts.push(outer[0]);
-  parts.push(...bottoms.slice(0,1));
-  const name = i => esc(i.name + (i.brand ? ' ' + i.brand : ''));
-  let txt = parts.length ? parts.map(name).join(' + ') : 'Из твоих вещей ничего не подходит';
-  const warn = [];
-  const hasWaterproofOuter = DATA.items.some(i => i.waterproof === true);
-  if (t < 10 && !outer.length) warn.push('Холодно: нужна тёплая куртка — её пока нет.');
-  if (rain) warn.push(hasWaterproofOuter ? 'Дождь — надень непромокаемое.' : 'Возьми зонт.');
-  if (t < 3) warn.push('Шапка и перчатки.');
-  return txt + (warn.length ? ` <div class="miss">${warn.join(' ')}</div>` : '');
+  const pick = [...base.slice(0,1), ...mids.slice(0, layers)];
+  const needOuter = t < 10 || (rain && t < 16);
+  if (needOuter && outer.length) pick.push(outer[0]);
+  pick.push(...bottoms.slice(0,1), ...shoes.slice(0,1));
+  const missing = [], warns = [];
+  if (needOuter && !outer.length) { missing.push('Куртка'); warns.push('Нужна куртка — её пока нет, она в списке покупок.'); }
+  if (rain && !pick.some(i => i.waterproof === true)) warns.push('☂︎ Возьми зонт.');
+  if (t < 3) warns.push('Шапка и перчатки.');
+  return {pick, missing, warns};
 }
-function suggest(t){ $('#tOut').textContent = fmtT(t); $('#tRes').innerHTML = outfit(t, false); }
+function lookHTML(o){
+  return o.pick.map(i => `<div class="it" data-id="${esc(i.id)}"><div class="im">${i.photos?.[0] ? img(i.photos[0], i.name) : ''}</div>${esc(i.name)}</div>`).join('') +
+    o.missing.map(m => `<a class="it miss" href="#wish" style="text-decoration:none"><div class="im">?</div>${esc(m)}</a>`).join('');
+}
+document.addEventListener('click', e => { const it = e.target.closest('.look .it[data-id]'); if (it) openItem(it.dataset.id); });
+function initSlider(){
+  const t = $('#t'), f = () => {
+    const o = outfit(+t.value, false); $('#tOut').textContent = fmtT(+t.value);
+    $('#tLook').innerHTML = lookHTML(o); $('#tWarn').innerHTML = o.warns.map(w => `<div>${esc(w)}</div>`).join('');
+  };
+  t.oninput = f; f();
+}
 
-/* Weather: Open-Meteo first, MET Norway as fallback. Both normalised to
-   [{date, morning, feel, max, evening, rainHour, maxP}] in Dushanbe time (UTC+5). */
+/* ---------- weather: Open-Meteo, fallback MET Norway ---------- */
 const LAT = 38.56, LON = 68.77, TZ_OFF = 5;
 async function fromOpenMeteo(){
-  const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=apparent_temperature,temperature_2m,precipitation_probability&daily=temperature_2m_max&timezone=Asia%2FDushanbe&forecast_days=4`);
+  const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=apparent_temperature,temperature_2m,precipitation_probability&daily=temperature_2m_max&timezone=Asia%2FDushanbe&forecast_days=5`);
   const w = await r.json(); if (!w.hourly) throw new Error('no data');
   const H = w.hourly, at = (d, h) => H.time.indexOf(`${d}T${String(h).padStart(2,'0')}:00`);
   return w.daily.time.map((d, k) => {
@@ -248,40 +374,40 @@ async function fromOpenMeteo(){
 }
 async function fromMetNo(){
   const r = await fetch(`https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${LAT}&lon=${LON}`);
-  const ts = (await r.json()).properties.timeseries;
-  const byDay = {};
+  const ts = (await r.json()).properties.timeseries, byDay = {};
   for (const e of ts){
     const local = new Date(new Date(e.time).getTime() + TZ_OFF * 3600e3);
-    const d = local.toISOString().slice(0,10), h = local.getUTCHours();
-    const det = e.data.instant.details, rain = (e.data.next_1_hours || e.data.next_6_hours)?.details?.precipitation_amount ?? 0;
+    const d = local.toISOString().slice(0,10), h = local.getUTCHours(), det = e.data.instant.details;
+    const rain = (e.data.next_1_hours || e.data.next_6_hours)?.details?.precipitation_amount ?? 0;
     (byDay[d] ||= []).push({h, t: det.air_temperature, wind: det.wind_speed * 3.6, rain});
   }
-  const near = (arr, h) => arr.reduce((a, b) => Math.abs(b.h - h) < Math.abs(a.h - h) ? b : a);
+  const near = (a, h) => a.reduce((x, y) => Math.abs(y.h - h) < Math.abs(x.h - h) ? y : x);
   const chill = (t, v) => t <= 10 && v > 4.8 ? 13.12 + .6215*t - 11.37*v**.16 + .3965*t*v**.16 : t;
-  return Object.keys(byDay).sort().filter(d => byDay[d].some(x => Math.abs(x.h - 7) <= 2)).slice(0,4).map(d => {
-    const a = byDay[d], m = near(a,7), e = near(a,18);
-    const wet = a.filter(x => x.h >= 6 && x.h <= 19 && x.rain >= 0.2);
+  return Object.keys(byDay).sort().filter(d => byDay[d].some(x => Math.abs(x.h - 7) <= 2)).slice(0,5).map(d => {
+    const a = byDay[d], m = near(a,7), e = near(a,18), wet = a.filter(x => x.h >= 6 && x.h <= 19 && x.rain >= 0.2);
     return {date: d, morning: m.t, feel: chill(m.t, m.wind), max: Math.max(...a.map(x => x.t)), evening: e.t,
             rainHour: wet.length ? wet[0].h : null, maxP: wet.length ? Math.max(...wet.map(x => x.rain)).toFixed(1) + ' мм' : 'сухо'};
   });
 }
 async function loadWeather(){
-  let days;
-  try { days = await fromOpenMeteo(); } catch { try { days = await fromMetNo(); } catch {} }
-  if (!days){ $('#weather').innerHTML = '<div class="day">Прогноз сейчас недоступен — обнови страницу позже.</div>'; return; }
-  const wd = ['вс','пн','вт','ср','чт','пт','сб'];
-  $('#weather').innerHTML = days.map((x, k) => {
-    const dt = new Date(x.date + 'T12:00:00');
-    const today = new Date(Date.now() + TZ_OFF * 3600e3).toISOString().slice(0,10);
-    const diff = Math.round((new Date(x.date) - new Date(today)) / 864e5);
-    const label = diff === 0 ? 'Сегодня' : diff === 1 ? 'Завтра' : wd[dt.getDay()];
-    const rain = x.rainHour !== null;
-    return `<div class="day">
-      <div class="d"><span>${label}</span><span style="color:var(--muted)">${dt.getDate()}.${String(dt.getMonth()+1).padStart(2,'0')}</span></div>
-      <div class="t">${fmtT(x.morning)} <small>утром · ощущ. ${fmtT(x.feel)} · днём ${fmtT(x.max)} · вечером ${fmtT(x.evening)}</small></div>
-      <div class="rain ${rain?'yes':'no'}">${rain ? `☔ Зонт — дождь с ~${x.rainHour}:00 (${x.maxP})` : `Без зонта (${x.maxP})`}</div>
-      <div class="wear">${outfit(x.feel, rain)}</div>
-    </div>`;
+  let days; try { days = await fromOpenMeteo(); } catch { try { days = await fromMetNo(); } catch {} }
+  if (!days?.length){ $('#hero').innerHTML = '<div class="when">Прогноз сейчас недоступен — обнови страницу позже.</div>'; return; }
+  const now = new Date(Date.now() + TZ_OFF * 3600e3), today = now.toISOString().slice(0,10);
+  if (days[0].date === today && now.getUTCHours() >= 19) days.shift();   // вечером важнее завтрашнее утро
+  const wd = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  const label = x => { const diff = Math.round((new Date(x.date) - new Date(today)) / 864e5); return diff === 0 ? 'Сегодня' : diff === 1 ? 'Завтра' : wd[new Date(x.date + 'T12:00').getDay()]; };
+  const dm = x => { const d = new Date(x.date + 'T12:00'); return `${d.getDate()}.${String(d.getMonth()+1).padStart(2,'0')}`; };
+  const h = days[0], o = outfit(h.feel, h.rainHour !== null);
+  $('#hero').innerHTML = `
+    <div class="when"><span>${label(h)} · утром</span><span>${dm(h)}</span></div>
+    <div class="big"><b>${fmtT(h.morning)}</b><span>ощущается ${fmtT(h.feel)}<br>днём ${fmtT(h.max)} · вечером ${fmtT(h.evening)}</span></div>
+    <span class="pill ${h.rainHour!==null?'rain':''}">${h.rainHour!==null ? `☂︎ Дождь с ~${h.rainHour}:00 · ${h.maxP}` : `☀︎ Без зонта · ${h.maxP}`}</span>
+    <div class="look">${lookHTML(o)}</div><div class="warns">${o.warns.map(w => `<div>${esc(w)}</div>`).join('')}</div>`;
+  $('#days').innerHTML = days.slice(1, 4).map(x => {
+    const oo = outfit(x.feel, x.rainHour !== null);
+    return `<div class="row"><div class="d"><b>${label(x)}</b><span>${dm(x)}</span></div>
+      <div class="w"><b>${fmtT(x.morning)}</b> утром · днём ${fmtT(x.max)}<span class="o">${oo.pick.map(i => esc(i.name)).join(' + ')}${oo.missing.length ? ' + <b style="color:var(--warn);font-size:13px">куртка</b>' : ''}</span></div>
+      <div class="u" title="${x.rainHour!==null?'Дождь':'Сухо'}">${x.rainHour!==null ? '☂︎' : ''}</div></div>`;
   }).join('');
 }
 </script>

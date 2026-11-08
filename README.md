@@ -18,3 +18,13 @@
 | `layer` | база / средний / верхний |
 | `windproof`, `waterproof` | держит ли ветер и дождь |
 | `photos` | пути к фото, первое — обложка |
+
+## Добавление вещей с телефона
+Кнопка «+» на сайте открывает форму «Добавить вещь» на GitHub. Прикрепляешь фото, сколько нужно, и заполняешь поля.
+Дальше GitHub Action (`.github/workflows/add-item.yml`) сам:
+1. скачивает фото;
+2. удаляет фон через [rembg](https://github.com/danielgatis/rembg) (модель `isnet-general-use`, бесплатно, работает прямо на GitHub);
+3. сохраняет WebP в `wardrobe/photos/` и добавляет вещь в `wardrobe.json`;
+4. отвечает в issue и закрывает его.
+
+Добавлять вещи может только владелец репозитория. Удалить фон у одного фото локально: `python scripts/add_item.py cutout in.jpg out.webp`.

@@ -1,0 +1,89 @@
+name: "👕 Добавить вещь"
+description: "Новая вещь в гардероб или новые фото к существующей. Фон удалится автоматически."
+title: "Вещь: "
+labels: ["new-item"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Прикрепи фото и заполни то, что знаешь. Через 1–2 минуты вещь появится на сайте, фон будет удалён.
+        Совет: фотографируй вещь целиком на ровном фоне (кровать, пол, дверь), бирку — отдельным фото.
+  - type: input
+    id: existing
+    attributes:
+      label: "Добавить фото к существующей вещи (id)"
+      description: "Оставь пустым, если это новая вещь. Иначе id с сайта, например top-002."
+  - type: textarea
+    id: photos
+    attributes:
+      label: "Фото"
+      description: "Нажми сюда и прикрепи одно или несколько фото (скрепка / «Paste, drop, or click to add files»)."
+    validations:
+      required: true
+  - type: dropdown
+    id: removebg
+    attributes:
+      label: "Удалить фон"
+      options:
+        - "На всех фото"
+        - "Только на первом (обложка)"
+        - "Не удалять"
+      default: 0
+  - type: input
+    id: name
+    attributes:
+      label: "Название"
+      placeholder: "Куртка демисезонная"
+  - type: dropdown
+    id: category
+    attributes:
+      label: "Категория"
+      options:
+        - "Верх"
+        - "Низ"
+        - "Верхняя одежда"
+        - "Обувь"
+        - "Аксессуары"
+  - type: dropdown
+    id: warmth
+    attributes:
+      label: "Насколько тёплая"
+      options:
+        - "1 — очень лёгкая (футболка, шорты)"
+        - "2 — лёгкая (рубашка, тонкий свитер, спортивка)"
+        - "3 — средняя (худи, плотный свитер, джинсы)"
+        - "4 — тёплая (демисезонная куртка)"
+        - "5 — очень тёплая (пуховик, зимние ботинки)"
+  - type: input
+    id: brand
+    attributes:
+      label: "Бренд"
+  - type: input
+    id: color
+    attributes:
+      label: "Цвет"
+      placeholder: "тёмно-синий"
+  - type: input
+    id: material
+    attributes:
+      label: "Состав"
+      placeholder: "100% хлопок"
+  - type: input
+    id: size
+    attributes:
+      label: "Размер"
+  - type: checkboxes
+    id: protection
+    attributes:
+      label: "Защита от погоды"
+      options:
+        - label: "Держит ветер"
+        - label: "Непромокаемая"
+  - type: input
+    id: link
+    attributes:
+      label: "Ссылка на товар (WB и т.п.)"
+  - type: textarea
+    id: notes
+    attributes:
+      label: "Заметки"
