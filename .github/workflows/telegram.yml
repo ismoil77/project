@@ -1,0 +1,42 @@
+name: Telegram digest
+
+on:
+  schedule:
+    - cron: "35 0 * * *"    # 05:35 Dushanbe — today + 3 days
+    - cron: "35 15 * * *"   # 20:35 Dushanbe — what to lay out for tomorrow
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "morning или evening"
+        default: morning
+
+permissions:
+  contents: write
+
+concurrency:
+  group: wardrobe-write
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: Send
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          MODE: ${{ github.event.inputs.mode || (github.event.schedule == '35 15 * * *' && 'evening' || 'morning') }}
+        run: python scripts/telegram_digest.py
+      - name: Remember chat id
+        run: |
+          if [ -n "$(git status --porcelain .github/telegram_chat_id)" ]; then
+            git config user.name "wardrobe-bot"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add .github/telegram_chat_id
+            git commit -m "Remember Telegram chat id"
+            for i in 1 2 3; do git pull --rebase && git push && break; sleep 5; done
+          fi
